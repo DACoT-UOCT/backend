@@ -41,17 +41,17 @@ jobs:
         run: |
           flake8 --exit-zero . > flake8_report.txt
       - name: Upload xml coverage report
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v2.2.3
         with:
           name: report
           path: coverage.xml
       - name: Upload pylint report
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v2.2.3
         with:
           name: report
           path: pylint_report.txt
       - name: Upload flake8 report
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v2.2.3
         with:
           name: report
           path: flake8_report.txt
