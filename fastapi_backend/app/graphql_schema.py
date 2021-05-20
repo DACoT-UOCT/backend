@@ -642,6 +642,7 @@ class SetVehicleIntergreenItemInput(graphene.InputObjectType):
 class SetVehicleIntergreenInput(graphene.InputObjectType):
     jid = graphene.NonNull(graphene.String)
     status = graphene.NonNull(graphene.String)
+    value = graphene.Int()
     phases = graphene.List(graphene.NonNull(SetVehicleIntergreenItemInput))
 
 #class DeleteController(CustomMutation):
@@ -654,7 +655,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     Output = graphene.String
 
     @classmethod
-    def mutate(cls, root, info, data):
+    def set_vi(cls, data, vi_value=4):
         oid = 'X{}0'.format(data.jid[1:-1])
         proj = ProjectModel.objects(oid=oid, metadata__status=data.status).first()
         if not proj:
@@ -668,7 +669,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
                     new_inter = JunctionIntergreenValueModel()
                     new_inter.phfrom = ped_inter.phfrom
                     new_inter.phto = ped_inter.phto
-                    new_inter.value = '4'           # INFO: Default intergreen value
+                    new_inter.value = vi_value
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
                 try:
@@ -681,6 +682,20 @@ class SetDefaultVehicleIntergreen(CustomMutation):
         msg = 'Failed to find junction "{}" in project "{}". Junction not found'.format(data.jid, oid)
         cls.log_action(msg, info)
         return GraphQLError(msg)
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        return cls.set_vi(data)
+
+class SetIntergreen(SetDefaultVehicleIntergreen):
+    class Arguments:
+        data = SetVehicleIntergreenInput()
+
+    Output = graphene.String
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        return cls.set_vi(data, data.value)
 
 class CreateProject(CustomMutation):
     class Arguments:
@@ -1638,6 +1653,7 @@ class Mutation(graphene.ObjectType):
     reject_project = RejectProject.Field()
     update_project = UpdateProject.Field()
     set_default_intergreen = SetDefaultVehicleIntergreen.Field()
+    set_intergreen = SetIntergreen.Field()
 
 
 dacot_schema = graphene.Schema(query=Query, mutation=Mutation)
