@@ -1,66 +1,75 @@
-import graphene_mongo
 import magic
 import base64
 import logging
-import graphene
 from datetime import datetime
-from fastapi.logger import logger
-from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
-from dacot_models import User as UserModel
-from dacot_models import ExternalCompany as ExternalCompanyModel
+
+import graphene
+import magic
+from dacot_models import APIKeyUsers as APIKeyUsersModel
 from dacot_models import ActionsLog as ActionsLogModel
-from dacot_models import Commune as CommuneModel
-from dacot_models import Project as ProjectModel
 from dacot_models import Comment as CommentModel
+from dacot_models import Commune as CommuneModel
 from dacot_models import Controller as ProjControllerModel
 from dacot_models import ControllerModel as ControllerModelModel
+from dacot_models import ExternalCompany as ExternalCompanyModel
+from dacot_models import HeaderItem as ProjectHeaderItemModel
+from dacot_models import Junction as JunctionModel
+from dacot_models import JunctionIntergreenValue as JunctionIntergreenValueModel
+from dacot_models import JunctionMeta as JunctionMetaModel
+from dacot_models import JunctionPhaseSequenceItem as JunctionPhaseSequenceItemModel
+from dacot_models import JunctionPlan as JunctionPlanModel
+from dacot_models import JunctionPlanIntergreenValue as JunctionPlanIntergreenValueModel
+from dacot_models import JunctionPlanPhaseValue as JunctionPlanPhaseValueModel
 from dacot_models import OTU as OTUModel
 from dacot_models import OTUMeta as OTUMetaModel
 from dacot_models import OTUProgramItem as OTUProgramItemModel
-from dacot_models import HeaderItem as ProjectHeaderItemModel
-from dacot_models import UPS as UPSModel
-from dacot_models import Poles as PolesModel
-from dacot_models import ProjectMeta as ProjectMetaModel
-from dacot_models import Junction as JunctionModel
-from dacot_models import JunctionMeta as JunctionMetaModel
-from dacot_models import JunctionPlan as JunctionPlanModel
-from dacot_models import JunctionPlanPhaseValue as JunctionPlanPhaseValueModel
-from dacot_models import JunctionPlanIntergreenValue as JunctionPlanIntergreenValueModel
-from dacot_models import JunctionPhaseSequenceItem as JunctionPhaseSequenceItemModel
-from dacot_models import JunctionIntergreenValue as JunctionIntergreenValueModel
 from dacot_models import PlanParseFailedMessage as PlanParseFailedMessageModel
-from dacot_models import APIKeyUsers as APIKeyUsersModel
-from mongoengine import ValidationError, NotUniqueError
+from dacot_models import Poles as PolesModel
+from dacot_models import Project as ProjectModel
+from dacot_models import ProjectMeta as ProjectMetaModel
+from dacot_models import UPS as UPSModel
+from dacot_models import User as UserModel
+from fastapi.logger import logger
+from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
 from graphql import GraphQLError
+from mongoengine import ValidationError, NotUniqueError
+
 
 class JunctionIntergreenValue(MongoengineObjectType):
     class Meta:
         model = JunctionIntergreenValueModel
 
+
 class JunctionPhaseSequenceItem(MongoengineObjectType):
     class Meta:
         model = JunctionPhaseSequenceItemModel
+
 
 class Controller(MongoengineObjectType):
     class Meta:
         model = ProjControllerModel
 
+
 class HeaderItem(MongoengineObjectType):
     class Meta:
         model = ProjectHeaderItemModel
+
 
 class UPS(MongoengineObjectType):
     class Meta:
         model = UPSModel
 
+
 class Poles(MongoengineObjectType):
     class Meta:
         model = PolesModel
+
 
 class Project(MongoengineObjectType):
     class Meta:
         model = ProjectModel
         interfaces = (graphene.relay.Node,)
+
 
 class ProjectMeta(MongoengineObjectType):
     class Meta:
@@ -90,6 +99,7 @@ class JunctionPlanIntergreenValue(MongoengineObjectType):
 class Junction(MongoengineObjectType):
     class Meta:
         model = JunctionModel
+
 
 class Comment(MongoengineObjectType):
     class Meta:
@@ -188,6 +198,7 @@ class CustomMutation(graphene.Mutation):
         mime = magic.from_buffer(b64bytes[0:2048], mime=True)
         return b64bytes, mime
 
+
 class QueryRootUtils:
     def log_action(self, message, graphql_info):
         op = str(graphql_info.operation)
@@ -206,7 +217,9 @@ class QueryRootUtils:
         # TODO: FIXME: For now, we return the same user for all requests
         return UserModel.objects(email="seed@dacot.uoct.cl").first()
 
+
 RANGE_SCALAR_MAX_VALUE = 50
+
 
 class RangeScalar(graphene.Int):
     def __init__(self, required=False):
@@ -226,14 +239,15 @@ class RangeScalar(graphene.Int):
             raise ValueError('Value {} is greater than max {}'.format(num, RANGE_SCALAR_MAX_VALUE))
         return num
 
+
 class Query(graphene.ObjectType):
     users = graphene.List(User)
     user = graphene.Field(User, email=graphene.NonNull(graphene.String))
-    actions_logs = graphene.List(ActionsLog) # TODO: Add pagination
+    actions_logs = graphene.List(ActionsLog)  # TODO: Add pagination
     actions_log = graphene.Field(ActionsLog, logid=graphene.NonNull(graphene.String))
     communes = graphene.List(Commune)
     companies = graphene.List(ExternalCompany)
-    failed_plans = graphene.List(PartialPlanParseFailedMessage) # TODO: Add pagination
+    failed_plans = graphene.List(PartialPlanParseFailedMessage)  # TODO: Add pagination
     failed_plan = graphene.Field(PlanParseFailedMessage, mid=graphene.NonNull(graphene.String))
     controller_models = graphene.List(ControllerModel)
     # otus = graphene.List(OTU) # Disabled for performance
@@ -242,7 +256,9 @@ class Query(graphene.ObjectType):
     junction = graphene.Field(Junction, jid=graphene.NonNull(graphene.String))
     # all_projects = graphene.List(Project) # Disabled for performance
     projects = MongoengineConnectionField(Project,
-        metadata__status=graphene.NonNull(graphene.String), metadata__version=graphene.NonNull(graphene.String), first=RangeScalar(required=True))
+                                          metadata__status=graphene.NonNull(graphene.String),
+                                          metadata__version=graphene.NonNull(graphene.String),
+                                          first=RangeScalar(required=True))
     project = graphene.Field(
         Project,
         oid=graphene.NonNull(graphene.String),
@@ -271,7 +287,7 @@ class Query(graphene.ObjectType):
                 isys[plid][sys.phid] = sys.value
                 if sys.phid > max_phid:
                     max_phid = sys.phid
-        #$ logger.warning(isys)
+        # $ logger.warning(isys)
         eps = {}
         for intg in junc.intergreens:
             intgfrom = ord(intg.phfrom) - 64
@@ -279,7 +295,7 @@ class Query(graphene.ObjectType):
             if intgfrom not in eps:
                 eps[intgfrom] = {}
             eps[intgfrom][intgto] = int(intg.value)
-        #$ logger.warning(eps)
+        # $ logger.warning(eps)
         evs = {}
         for intg in junc.veh_intergreens:
             intgfrom = ord(intg.phfrom) - 64
@@ -287,7 +303,7 @@ class Query(graphene.ObjectType):
             if intgfrom not in evs:
                 evs[intgfrom] = {}
             evs[intgfrom][intgto] = int(intg.value)
-        #$ logger.warning(evs)
+        # $ logger.warning(evs)
         temp_res = {}
         for plan in junc.plans:
             plid = plan.plid
@@ -307,7 +323,7 @@ class Query(graphene.ObjectType):
                 iv = iv - beta * plan.cycle
                 row = (plid, plan.cycle, ifs, phevs, iv, pheps, ph_isys)
                 temp_res[plid][phid] = row
-                #$ logger.warning('F{} => {}'.format(phid, row))
+                # $ logger.warning('F{} => {}'.format(phid, row))
         final_result = {}
         for plid, phases in temp_res.items():
             final_result[plid] = {}
@@ -324,7 +340,7 @@ class Query(graphene.ObjectType):
                 tvp = tvp + delta * row[1]
                 new_row = (row[0], row[1], row[2], row[3], row[4], tvv, tvp, row[5], row[6])
                 final_result[plid][phid] = new_row
-                #$ logger.warning('{} | F{} => TVV={} TVP={}'.format(plid, phid, tvv, tvp))
+                # $ logger.warning('{} | F{} => TVV={} TVP={}'.format(plid, phid, tvv, tvp))
         return final_result
 
     def __save_computed_plan_table(junc, table):
@@ -436,8 +452,8 @@ class Query(graphene.ObjectType):
             ProjectModel.objects(
                 oid=oid, metadata__status="PRODUCTION", metadata__version=vid
             )
-            .exclude("metadata.pdf_data")
-            .first()
+                .exclude("metadata.pdf_data")
+                .first()
         )
         if not version:
             return GraphQLError('Version "{}" not found'.format(vid))
@@ -447,9 +463,9 @@ class Query(graphene.ObjectType):
         result = []
         project_versions = (
             ProjectModel.objects(oid=oid, metadata__status="PRODUCTION")
-            .order_by("-status_date")
-            .only("metadata.version", "metadata.status_date", "observation")
-            .all()
+                .order_by("-status_date")
+                .only("metadata.version", "metadata.status_date", "observation")
+                .all()
         )
         for ver in project_versions:
             vinfo = PartialVersionInfo()
@@ -582,14 +598,17 @@ class OTUProgramInput(graphene.InputObjectType):
     time = graphene.NonNull(graphene.String)
     plan = graphene.NonNull(graphene.String)
 
+
 class JunctionPhasesSequenceInput(graphene.InputObjectType):
     phid = graphene.NonNull(graphene.String)
     phid_system = graphene.NonNull(graphene.String)
     type = graphene.NonNull(graphene.String)
 
+
 class JunctionMetadataInput(graphene.InputObjectType):
     coordinates = graphene.NonNull(graphene.List(graphene.NonNull(graphene.Float)))
     address_reference = graphene.NonNull(graphene.String)
+
 
 class JunctionPlanPhaseValueInput(graphene.InputObjectType):
     phid = graphene.NonNull(graphene.Int)
@@ -632,20 +651,22 @@ class CreateProjectInput(graphene.InputObjectType):
     poles = ProjectPolesInput()
     observation = graphene.NonNull(graphene.String)
 
+
 class DeleteControllerModelInput(graphene.InputObjectType):
     cid = graphene.NonNull(graphene.String)
 
-class SetVehicleIntergreenItemInput(graphene.InputObjectType):
-    phid = graphene.NonNull(graphene.String)
-    value = graphene.NonNull(graphene.Int)
+
+# class SetVehicleIntergreenItemInput(graphene.InputObjectType):
+#    phid = graphene.NonNull(graphene.String)
+#    value = graphene.NonNull(graphene.Int)
 
 class SetVehicleIntergreenInput(graphene.InputObjectType):
     jid = graphene.NonNull(graphene.String)
     status = graphene.NonNull(graphene.String)
-    value = graphene.Int()
-    phases = graphene.List(graphene.NonNull(SetVehicleIntergreenItemInput))
+    phases = graphene.List(graphene.NonNull(JunctionIntergreenValueInput))
 
-#class DeleteController(CustomMutation):
+
+# class DeleteController(CustomMutation):
 #    pass
 
 class SetDefaultVehicleIntergreen(CustomMutation):
@@ -655,7 +676,8 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     Output = graphene.String
 
     @classmethod
-    def set_vi(cls, data, vi_value=4):
+    def set_vi(cls, data, info, is_default=True):
+        logger.warning(data)
         oid = 'X{}0'.format(data.jid[1:-1])
         proj = ProjectModel.objects(oid=oid, metadata__status=data.status).first()
         if not proj:
@@ -669,7 +691,10 @@ class SetDefaultVehicleIntergreen(CustomMutation):
                     new_inter = JunctionIntergreenValueModel()
                     new_inter.phfrom = ped_inter.phfrom
                     new_inter.phto = ped_inter.phto
-                    new_inter.value = vi_value
+                    if is_default:
+                        new_inter.value = 4
+                    else:
+                        new_inter.value = -1  # TODO:!!!
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
                 try:
@@ -685,7 +710,8 @@ class SetDefaultVehicleIntergreen(CustomMutation):
 
     @classmethod
     def mutate(cls, root, info, data):
-        return cls.set_vi(data)
+        return cls.set_vi(data, info)
+
 
 class SetIntergreen(SetDefaultVehicleIntergreen):
     class Arguments:
@@ -695,7 +721,8 @@ class SetIntergreen(SetDefaultVehicleIntergreen):
 
     @classmethod
     def mutate(cls, root, info, data):
-        return cls.set_vi(data, data.value)
+        return cls.set_vi(data, info, is_default=False)
+
 
 class CreateProject(CustomMutation):
     class Arguments:
