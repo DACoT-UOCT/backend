@@ -162,6 +162,12 @@ class PartialVersionInfo(graphene.ObjectType):
     comment = graphene.Field(Comment)
 
 
+class JunctionLocationItem(graphene.ObjectType):
+    jid = graphene.NonNull(graphene.String)
+    lat = graphene.NonNull(graphene.Float)
+    lon = graphene.NonNull(graphene.Float)
+
+
 class CustomMutation(graphene.Mutation):
     # TODO: FIXME: Send emails functions
     # TODO: FIXME: Add current user to log
@@ -258,6 +264,7 @@ class Query(graphene.ObjectType):
                                           metadata__status=graphene.NonNull(graphene.String),
                                           metadata__version=graphene.NonNull(graphene.String),
                                           first=RangeScalar(required=True))
+    locations = graphene.List(JunctionLocationItem, status=graphene.NonNull(graphene.String))
     project = graphene.Field(
         Project,
         oid=graphene.NonNull(graphene.String),
@@ -275,6 +282,18 @@ class Query(graphene.ObjectType):
     check_otu_exists = graphene.Boolean(oid=graphene.NonNull(graphene.String))
     # $ full_schema_drop = graphene.Boolean() # Disabled in production
     compute_tables = graphene.Boolean(jid=graphene.NonNull(graphene.String), status=graphene.NonNull(graphene.String))
+
+    def resolve_locations(self, info, status):
+        import datetime
+        logger.warning('{}. Starting resolve_locations'.format(datetime.datetime.now().isoformat()))
+        all = ProjectModel.objects(metadata__status=status).no_dereference().only('otu.junctions.jid', 'otu.junctions.metadata.location')
+        ret = []
+        for proj in all:
+            for junc in proj.otu.junctions:
+                loc = junc.metadata.location['coordinates']
+                ret.append(JunctionLocationItem(jid=junc.jid, lat=loc[0], lon=loc[1]))
+        logger.warning('{}. Done resolve_locations'.format(datetime.datetime.now().isoformat()))
+        return ret
 
     @staticmethod
     def __compute_plan_table(junc):
