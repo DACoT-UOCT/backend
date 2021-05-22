@@ -286,7 +286,8 @@ class Query(graphene.ObjectType):
     def resolve_locations(self, info, status):
         import datetime
         logger.warning('{}. Starting resolve_locations'.format(datetime.datetime.now().isoformat()))
-        all = ProjectModel.objects(metadata__status=status).no_dereference().only('otu.junctions.jid', 'otu.junctions.metadata.location')
+        all = ProjectModel.objects(metadata__status=status).no_dereference().only('otu.junctions.jid',
+                                                                                  'otu.junctions.metadata.location')
         ret = []
         for proj in all:
             for junc in proj.otu.junctions:
