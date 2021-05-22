@@ -46,6 +46,7 @@ class JunctionPlan(EmbeddedDocument):
 class JunctionMeta(EmbeddedDocument):
     location = PointField(required=True)
     sales_id = IntField(min_value=0, required=True)
+    use_default_vi4 = BooleanField(default=True, required=True)
     address_reference = StringField()
 
 
@@ -62,6 +63,7 @@ class Junction(EmbeddedDocument):
     sequence = EmbeddedDocumentListField(JunctionPhaseSequenceItem)
     intergreens = EmbeddedDocumentListField(JunctionIntergreenValue)
     veh_intergreens = EmbeddedDocumentListField(JunctionIntergreenValue)
+    phases = ListField(StringField())
 
 
 class ExternalCompany(Document):
