@@ -1,11 +1,13 @@
-from .config import get_settings
-from mongoengine import connect
-from .custom_graphql_app import CustomGraphQLApp
-from .graphql_schema import dacot_schema
-from .db_init import DBInit
 from fastapi import FastAPI, Request, Depends
-from starlette.datastructures import URL
+from fastapi.logger import logger
 from fastapi_jwt_auth import AuthJWT
+from mongoengine import connect
+from starlette.datastructures import URL
+
+from .config import get_settings
+from .custom_graphql_app import CustomGraphQLApp
+from .db_init import DBInit
+from .graphql_schema import dacot_schema
 
 connect(host=get_settings().mongo_uri)
 db_init = DBInit(get_settings().apikey_users_file)
@@ -35,12 +37,17 @@ async def graphiql(request: Request):
     request._url = URL("/graphql")
     return await graphql_app.handle_graphiql(request=request)
 
+
 @app.post("/")
 async def graphql(request: Request, authorize: AuthJWT = Depends()):
     request.state.authorize = authorize
     return await graphql_app.handle_graphql(request=request)
 
+
 @app.post("/graphql")
 async def graphql(request: Request, authorize: AuthJWT = Depends()):
     request.state.authorize = authorize
     return await graphql_app.handle_graphql(request=request)
+
+
+logger.warning("App Ready")

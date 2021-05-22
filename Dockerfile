@@ -9,10 +9,10 @@ COPY tests /repo/tests
 COPY run-seed.sh /repo/run-seed.sh
 COPY dacot_models /dacot_models
 RUN cd / && poetry add /dacot_models/
-COPY fastapi_backend/app /app
 COPY run-api.sh /run-api.sh
 EXPOSE 8081
 WORKDIR /
 COPY graphene_arguments.patch /graphene_patch.patch
 RUN cd /root/.cache/pypoetry/virtualenvs/*/lib/python3.8/site-packages/graphene && patch -p0 --verbose --ignore-whitespace --fuzz 3 < /graphene_patch.patch
 ENTRYPOINT /usr/local/bin/poetry run /bin/bash /run-api.sh
+COPY fastapi_backend/app /app
