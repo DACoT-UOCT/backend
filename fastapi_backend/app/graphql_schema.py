@@ -1,4 +1,3 @@
-import magic
 import base64
 import logging
 from datetime import datetime
@@ -277,6 +276,7 @@ class Query(graphene.ObjectType):
     # $ full_schema_drop = graphene.Boolean() # Disabled in production
     compute_tables = graphene.Boolean(jid=graphene.NonNull(graphene.String), status=graphene.NonNull(graphene.String))
 
+    @staticmethod
     def __compute_plan_table(junc):
         max_phid = -1
         isys = {}
@@ -343,6 +343,7 @@ class Query(graphene.ObjectType):
                 # $ logger.warning('{} | F{} => TVV={} TVP={}'.format(plid, phid, tvv, tvp))
         return final_result
 
+    @staticmethod
     def __save_computed_plan_table(junc, table):
         new_plans = []
         veh_inters = []
@@ -649,22 +650,33 @@ class CreateProjectInput(graphene.InputObjectType):
     observation = graphene.NonNull(graphene.String)
 
 
-class DeleteControllerModelInput(graphene.InputObjectType):
-    cid = graphene.NonNull(graphene.String)
-
-
-# class SetVehicleIntergreenItemInput(graphene.InputObjectType):
-#    phid = graphene.NonNull(graphene.String)
-#    value = graphene.NonNull(graphene.Int)
-
 class SetVehicleIntergreenInput(graphene.InputObjectType):
     jid = graphene.NonNull(graphene.String)
     status = graphene.NonNull(graphene.String)
     phases = graphene.List(graphene.NonNull(JunctionIntergreenValueInput))
 
 
-# class DeleteController(CustomMutation):
-#    pass
+class DeleteController(CustomMutation):
+    class Arguments:
+        cid = graphene.NonNull(graphene.String)
+
+    Output = graphene.String
+
+    @classmethod
+    def mutate(cls, root, info, cid):
+        ctrl = ControllerModelModel.objects(id=cid).first()
+        if not ctrl:
+            msg = 'Failed to delete controller. Controller Id {} not found'.format(cid)
+            cls.log_action(msg, info)
+            return GraphQLError(msg)
+        try:
+            ctrl.delete()
+        except Exception as exp:
+            msg = 'Failed to delete controller. Cause: {}'.format(str(exp))
+            cls.log_action(msg, info)
+            return GraphQLError(msg)
+        return cid
+
 
 class SetDefaultVehicleIntergreen(CustomMutation):
     class Arguments:
@@ -1714,6 +1726,7 @@ class Mutation(graphene.ObjectType):
     update_project = UpdateProject.Field()
     set_default_intergreen = SetDefaultVehicleIntergreen.Field()
     set_intergreen = SetIntergreen.Field()
+    delete_controller = DeleteController.Field()
 
 
 dacot_schema = graphene.Schema(query=Query, mutation=Mutation)
