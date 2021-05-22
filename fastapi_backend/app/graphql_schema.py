@@ -253,7 +253,7 @@ class Query(graphene.ObjectType):
     # otus = graphene.List(OTU) # Disabled for performance
     otu = graphene.Field(OTU, oid=graphene.NonNull(graphene.String))
     # junctions = graphene.List(Junction) # Disabled for performance
-    junction = graphene.Field(Junction, jid=graphene.NonNull(graphene.String))
+    junction = graphene.Field(Junction, jid=graphene.NonNull(graphene.String), status=graphene.NonNull(graphene.String))
     # all_projects = graphene.List(Project) # Disabled for performance
     projects = MongoengineConnectionField(Project,
                                           metadata__status=graphene.NonNull(graphene.String),
@@ -486,12 +486,10 @@ class Query(graphene.ObjectType):
             juncs.extend(proj.otu.junctions)
         return juncs
 
-    def resolve_junction(self, info, jid):
-        proj = (
-            ProjectModel.objects(otu__junctions__jid=jid).only("otu.junctions").first()
-        )
+    def resolve_junction(self, info, jid, status):
+        proj = ProjectModel.objects(metadata__status=status, otu__junctions__jid=jid).only("otu.junctions").first()
         if proj:
-            for junc in proj.junctions:
+            for junc in proj.otu.junctions:
                 if junc.jid == jid:
                     return junc
         return None
