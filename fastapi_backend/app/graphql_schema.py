@@ -693,27 +693,37 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     @classmethod
     def update_model_custom(cls, data, info, proj, junc):
         logger.warning(data)
-        input_inters_from = {}
-        input_inters_to = {}
+        input_inters = {}
         for phase in data.phases:
-            input_inters_from[phase['phfrom']] = None
-            input_inters_to[phase['phto']] = None
-        a = len(input_inters_from)
-        b = len(input_inters_to)
+            k = (phase['phfrom'], phase['phto'])
+            input_inters[k] = phase['value']
+        inpl = len(input_inters)
         needed = len(junc.intergreens)
-        logger.warning((a, b, needed))
-        if a != b or a != needed:
-            msg = 'Failed to set VI values, number of phases in input mismatch. Needed {}, got {} (from) and {} (to)'.format(needed, a, b)
+        if inpl != needed:
+            msg = 'Failed to set VI values, number of phases in input mismatch. Needed {}, got {}'.format(needed, inpl)
             cls.log_action(msg, info)
             return GraphQLError(msg)
-        logger.warning(input_inters_from)
+        veh_inters = []
         for ped_inter in junc.intergreens:
             new_inter = JunctionIntergreenValueModel()
+            k = (ped_inter.phfrom, ped_inter.phto)
+            if k not in input_inters:
+                msg = 'Missing phase pair in input: {}'.format(k)
+                cls.log_action(msg, info)
+                return GraphQLError(msg)
             new_inter.phfrom = ped_inter.phfrom
             new_inter.phto = ped_inter.phto
-            new_inter.value = -5
+            new_inter.value = input_inters[k]
+            veh_inters.append(new_inter)
             logger.warning(new_inter.to_mongo())
-        logger.warning('On update_model_custom')
+        junc.veh_intergreens = veh_inters
+        try:
+            proj.save()
+        except ValidationError as excep:
+            msg = 'Failed to save project. Cause: {}'.format(str(excep))
+            cls.log_action(msg, info)
+            return GraphQLError(msg)
+        logger.warning('Done update_model_custom')
         return data.jid
 
     @classmethod
