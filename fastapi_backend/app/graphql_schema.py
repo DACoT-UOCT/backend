@@ -692,7 +692,6 @@ class SetDefaultVehicleIntergreen(CustomMutation):
 
     @classmethod
     def update_model_custom(cls, data, info, proj, junc):
-        logger.warning(data)
         input_inters = {}
         for phase in data.phases:
             k = (phase['phfrom'], phase['phto'])
@@ -715,7 +714,6 @@ class SetDefaultVehicleIntergreen(CustomMutation):
             new_inter.phto = ped_inter.phto
             new_inter.value = input_inters[k]
             veh_inters.append(new_inter)
-            logger.warning(new_inter.to_mongo())
         junc.veh_intergreens = veh_inters
         try:
             proj.save()
@@ -723,7 +721,6 @@ class SetDefaultVehicleIntergreen(CustomMutation):
             msg = 'Failed to save project. Cause: {}'.format(str(excep))
             cls.log_action(msg, info)
             return GraphQLError(msg)
-        logger.warning('Done update_model_custom')
         return data.jid
 
     @classmethod
