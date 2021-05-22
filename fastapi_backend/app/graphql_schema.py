@@ -1745,7 +1745,7 @@ class Mutation(graphene.ObjectType):
     reject_project = RejectProject.Field()
     update_project = UpdateProject.Field()
     set_default_intergreen = SetDefaultVehicleIntergreen.Field()
-    set_intergreen = SetIntergreen.Field()
+    set_veh_intergreen = SetIntergreen.Field()
     delete_controller = DeleteController.Field()
 
 
