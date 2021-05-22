@@ -274,7 +274,7 @@ class Query(graphene.ObjectType):
         key=graphene.NonNull(graphene.String), secret=graphene.NonNull(graphene.String)
     )
     check_otu_exists = graphene.Boolean(oid=graphene.NonNull(graphene.String))
-    full_schema_drop = graphene.Boolean()
+    # $ full_schema_drop = graphene.Boolean() # Disabled in production
     compute_tables = graphene.Boolean(jid=graphene.NonNull(graphene.String), status=graphene.NonNull(graphene.String))
 
     def __compute_plan_table(junc):
@@ -413,7 +413,6 @@ class Query(graphene.ObjectType):
             proj.save()
             return found
         except Exception as excp:
-            logger.warning(excp)
             return GraphQLError(str(excp))
 
     def resolve_full_schema_drop(self, info):
@@ -622,9 +621,9 @@ class JunctionPlanInput(graphene.InputObjectType):
 
 
 class JunctionIntergreenValueInput(graphene.InputObjectType):
-    phf = graphene.NonNull(graphene.String)
-    pht = graphene.NonNull(graphene.String)
-    val = graphene.NonNull(graphene.String)
+    phfrom = graphene.NonNull(graphene.String)
+    phto = graphene.NonNull(graphene.String)
+    value = graphene.NonNull(graphene.String)
 
 
 class ProjectJunctionInput(graphene.InputObjectType):
@@ -676,8 +675,51 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     Output = graphene.String
 
     @classmethod
-    def set_vi(cls, data, info, is_default=True):
+    def update_model_default(cls, data, info, proj, junc):
+        veh_inters = []
+        for ped_inter in junc.intergreens:
+            new_inter = JunctionIntergreenValueModel()
+            new_inter.phfrom = ped_inter.phfrom
+            new_inter.phto = ped_inter.phto
+            new_inter.value = 4
+            veh_inters.append(new_inter)
+        junc.veh_intergreens = veh_inters
+        try:
+            proj.save()
+        except ValidationError as excep:
+            msg = 'Failed to save project. Cause: {}'.format(str(excep))
+            cls.log_action(msg, info)
+            return GraphQLError(msg)
+        return data.jid
+
+    @classmethod
+    def update_model_custom(cls, data, info, proj, junc):
         logger.warning(data)
+        input_inters_from = {}
+        input_inters_to = {}
+        for phase in data.phases:
+            input_inters_from[phase['phfrom']] = None
+            input_inters_to[phase['phto']] = None
+        a = len(input_inters_from)
+        b = len(input_inters_to)
+        needed = len(junc.intergreens)
+        logger.warning((a, b, needed))
+        if a != b or a != needed:
+            msg = 'Failed to set VI values, number of phases in input mismatch. Needed {}, got {} (from) and {} (to)'.format(needed, a, b)
+            cls.log_action(msg, info)
+            return GraphQLError(msg)
+        logger.warning(input_inters_from)
+        for ped_inter in junc.intergreens:
+            new_inter = JunctionIntergreenValueModel()
+            new_inter.phfrom = ped_inter.phfrom
+            new_inter.phto = ped_inter.phto
+            new_inter.value = -5
+            logger.warning(new_inter.to_mongo())
+        logger.warning('On update_model_custom')
+        return data.jid
+
+    @classmethod
+    def set_vi(cls, data, info, is_default=True):
         oid = 'X{}0'.format(data.jid[1:-1])
         proj = ProjectModel.objects(oid=oid, metadata__status=data.status).first()
         if not proj:
@@ -686,24 +728,10 @@ class SetDefaultVehicleIntergreen(CustomMutation):
             return GraphQLError(msg)
         for junc in proj.otu.junctions:
             if junc.jid == data.jid:
-                veh_inters = []
-                for ped_inter in junc.intergreens:
-                    new_inter = JunctionIntergreenValueModel()
-                    new_inter.phfrom = ped_inter.phfrom
-                    new_inter.phto = ped_inter.phto
-                    if is_default:
-                        new_inter.value = 4
-                    else:
-                        new_inter.value = -1  # TODO:!!!
-                    veh_inters.append(new_inter)
-                junc.veh_intergreens = veh_inters
-                try:
-                    proj.save()
-                except ValidationError as excep:
-                    msg = 'Failed to save project. Cause: {}'.format(str(excep))
-                    cls.log_action(msg, info)
-                    return GraphQLError(msg)
-                return data.jid
+                if is_default:
+                    return cls.update_model_default(data, info, proj, junc)
+                else:
+                    return cls.update_model_custom(data, info, proj, junc)
         msg = 'Failed to find junction "{}" in project "{}". Junction not found'.format(data.jid, oid)
         cls.log_action(msg, info)
         return GraphQLError(msg)
