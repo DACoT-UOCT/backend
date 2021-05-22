@@ -193,7 +193,7 @@ class OTUMeta(EmbeddedDocument):
     netmask = StringField()
     control = IntField()
     answer = IntField()
-    link_type = StringField(choices=["Digital", "Analogo"])
+    link_type = StringField(choices=["Digital", "Analogo", "3G", "4G", "5G"])
     link_owner = StringField(choices=["Propio", "Compartido"])
 
 
