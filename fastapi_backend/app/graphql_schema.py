@@ -714,6 +714,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
             new_inter.value = 4
             veh_inters.append(new_inter)
         junc.veh_intergreens = veh_inters
+        junc.metadata.use_default_vi4 = True
         try:
             proj.save()
         except ValidationError as excep:
@@ -747,6 +748,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
             new_inter.value = input_inters[k]
             veh_inters.append(new_inter)
         junc.veh_intergreens = veh_inters
+        junc.metadata.use_default_vi4 = False
         try:
             proj.save()
         except ValidationError as excep:
