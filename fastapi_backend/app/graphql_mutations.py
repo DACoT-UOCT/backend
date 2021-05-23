@@ -1,6 +1,8 @@
 import dacot_models as dm
 from graphene import *
 from graphql_models import *
+from fastapi.logger import logger
+from graphql import GraphQLError
 
 class CustomMutation(Mutation):
     # FIXME: Send emails functions
@@ -10,8 +12,9 @@ class CustomMutation(Mutation):
         abstract = True
 
     @classmethod
-    def log_action(cls, msg, graphql_info, is_error=False):
-        op = str(graphql_info.operation)
+    def log_action(cls, msg, is_error=False):
+        # op = str(graphql_info.operation)
+        op = 'OP'
         current_user = cls.get_current_user()
         if current_user:
             email = current_user.email
@@ -20,19 +23,20 @@ class CustomMutation(Mutation):
         log = dm.ActionsLog(user=email, context=op, action=msg, origin="GraphQL API")
         log.save()
         if is_error:
-            pass
+            logger.error(msg)
         else:
-            pass
+            logger.info(msg)
 
     @classmethod
     def get_current_user(cls):
         # Returns the currently logged user
         # TODO: FIXME: For now, we return the same user for all requests
-        return UserModel.objects(email="seed@dacot.uoct.cl").first()
+        return dm.User.objects(email="seed@dacot.uoct.cl").first()
 
     @classmethod
-    def log_gql_error(cls, message, info):
-        cls.log_action(message, info, is_error=True)
+    def log_gql_error(cls, message):
+        message = 'DACoT_GraphQLError: {}'.format(message)
+        cls.log_action(message, is_error=True)
         return GraphQLError(message)
 
     @classmethod
