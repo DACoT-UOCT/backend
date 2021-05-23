@@ -871,63 +871,6 @@ class RejectProject(CustomMutation):
         return project_details.oid
 
 
-class CreateCommuneInput(graphene.InputObjectType):
-    code = graphene.NonNull(graphene.Int)
-    name = graphene.NonNull(graphene.String)
-    maintainer = graphene.String()
-    user_in_charge = graphene.String()
-
-
-class CreateCommune(CustomMutation):
-    class Arguments:
-        commune_details = CreateCommuneInput()
-
-    Output = Commune
-
-    @classmethod
-    def mutate(cls, root, info, commune_details):
-        commune = CommuneModel()
-        commune.name = commune_details.name
-        commune.code = commune_details.code
-        if commune_details.maintainer:
-            maintainer = ExternalCompanyModel.objects(
-                name=commune_details.maintainer
-            ).first()
-            if not maintainer:
-                cls.log_action(
-                    'Failed to create commune "{}". Maintainer "{}" not found'.format(
-                        commune_details.code, commune_details.maintainer
-                    ),
-                    info,
-                )
-                return GraphQLError(
-                    'Maintainer "{}" not found'.format(commune_details.maintainer)
-                )
-            commune.maintainer = maintainer
-        if commune_details.user_in_charge:
-            user = UserModel.objects(email=commune_details.user_in_charge).first()
-            if not user:
-                cls.log_action(
-                    'Failed to create commune "{}". User "{}" not found'.format(
-                        commune_details.code, commune_details.user_in_charge
-                    ),
-                    info,
-                )
-                return GraphQLError(
-                    'User "{}" not found'.format(commune_details.user_in_charge)
-                )
-            commune.user_in_charge = user
-        try:
-            commune.save()
-        except ValidationError as excep:
-            cls.log_action(
-                'Failed to create commune "{}". {}'.format(commune.name, excep), info
-            )
-            return GraphQLError(str(excep))
-        cls.log_action('Commune "{}" created.'.format(commune.name), info)
-        return commune
-
-
 class UpdateCommuneInput(graphene.InputObjectType):
     code = graphene.NonNull(graphene.Int)
     maintainer = graphene.String()

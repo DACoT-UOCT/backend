@@ -78,7 +78,35 @@ class DeleteProject(CustomMutation):
             return cls.log_gql_error('Project {} in status {} not found.'.format(detail.oid, detail.status))
         try:
             proj.delete()
-        except ValidationError as excep:
+        except Exception as excep:
             return cls.log_gql_error('Error deleting project {} in status {}. {}'.format(detail.oid, detail.status, str(excep)))
         cls.log_action('Project {} in status {} deleted.'.format(detail.oid, detail.status))
         return detail.oid
+
+class CreateCommune(CustomMutation):
+    class Arguments:
+        detail = CreateCommuneInput()
+
+    Output = Commune
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        commune = dm.Commune()
+        commune.name = detail.name
+        commune.code = detail.code
+        if detail.maintainer:
+            comp = dm.ExternalCompany.objects(name=detail.maintainer).first()
+            if not comp:
+                return cls.log_gql_error('Commune creation failed. Maintainer {} not found'.format(detail.maintainer))
+            commune.maintainer = comp
+        if detail.user_in_charge:
+            user = dm.User.objects(email=detail.user_in_charge).first()
+            if not user:
+                return cls.log_gql_error('Commune creation failed. User {} not found'.format(detail.user_in_charge))
+            commune.user_in_charge = user
+        try:
+            commune.save()
+        except Exception as excep:
+            return cls.log_gql_error('Error saving new commune. {}'.format(str(excep)))
+        cls.log_action('Commune {} created'.format(detail.name))
+        return commune

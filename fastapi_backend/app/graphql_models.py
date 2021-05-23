@@ -238,3 +238,9 @@ class SetVehicleIntergreenInput(InputObjectType):
 class GetProjectInput(InputObjectType):
     oid = NonNull(String)
     status = NonNull(String)
+
+class CreateCommuneInput(InputObjectType):
+    code = NonNull(Int)
+    name = NonNull(String)
+    maintainer = String()
+    user_in_charge = String()
