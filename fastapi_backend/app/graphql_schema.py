@@ -5,6 +5,7 @@ from graphql_queries import *
 
 class Mutation(ObjectType):
     delete_controller = DeleteController.Field()
+    delete_project = DeleteProject.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation)
 

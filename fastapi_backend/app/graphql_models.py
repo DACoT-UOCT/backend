@@ -234,3 +234,7 @@ class SetVehicleIntergreenInput(InputObjectType):
     jid = NonNull(String)
     status = NonNull(String)
     phases = List(NonNull(JunctionIntergreenValueInput))
+
+class GetProjectInput(InputObjectType):
+    oid = NonNull(String)
+    status = NonNull(String)

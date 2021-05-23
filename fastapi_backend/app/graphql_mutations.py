@@ -58,3 +58,23 @@ class DeleteController(CustomMutation):
         except Exception as exp:
             return cls.log_gql_error('Failed to delete controller. Cause: {}'.format(str(exp)))
         return cid
+
+class DeleteProject(CustomMutation):
+    class Arguments:
+        detail = GetProjectInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        if detail.status == "PRODUCTION":
+            return cls.log_gql_error('Cannot delete a project in PRODUCTION status')
+        proj = dm.Project.objects(oid=detail.oid, metadata__status=detail.status).first()
+        if not proj:
+            return cls.log_gql_error('Project {} in status {} not found.'.format(detail.oid, detail.status))
+        try:
+            proj.delete()
+        except ValidationError as excep:
+            return cls.log_gql_error('Error deleting project {} in status {}. {}'.format(detail.oid, detail.status, str(excep)))
+        cls.log_action('Project {} in status {} deleted.'.format(detail.oid, detail.status))
+        return detail.oid

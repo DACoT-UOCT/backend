@@ -737,60 +737,6 @@ class UpdateProject(CreateProject):
             return GraphQLError(str(excep))
         return update_input
 
-
-class GetProjectInput(graphene.InputObjectType):
-    oid = graphene.NonNull(graphene.String)
-    status = graphene.NonNull(graphene.String)
-
-
-class DeleteProject(CustomMutation):
-    class Arguments:
-        project_details = GetProjectInput()
-
-    Output = graphene.String
-
-    @classmethod
-    def mutate(cls, root, info, project_details):
-        if project_details == "PRODUCTION":
-            cls.log_action(
-                'Failed to delete project "{}". Cannot delete data in PRODUCTION status'.format(
-                    project_details.oid
-                ),
-                info,
-            )
-            return GraphQLError(
-                'Failed to delete project "{}". Cannot delete data in PRODUCTION status'.format(
-                    project_details.oid
-                )
-            )
-        proj = ProjectModel.objects(
-            oid=project_details.oid, metadata__status=project_details.status
-        ).first()
-        if not proj:
-            cls.log_action(
-                'Failed to delete project "{}" in status "{}". Project not found'.format(
-                    project_details.oid, project_details.status
-                ),
-                info,
-            )
-            return GraphQLError(
-                'Project "{}" in status "{}" not found'.format(
-                    project_details.oid, project_details.status
-                )
-            )
-        try:
-            proj.delete()
-        except ValidationError as excep:
-            cls.log_action(
-                'Failed to delete project "{}" in status "{}": {}'.format(
-                    project_details.oid, project_details.status, excep
-                ),
-                info,
-            )
-            return GraphQLError(str(excep))
-        return project_details.oid
-
-
 class AcceptProject(CustomMutation):
     class Arguments:
         project_details = GetProjectInput()
