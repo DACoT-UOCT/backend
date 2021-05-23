@@ -4,8 +4,14 @@ from graphql_mutations import *
 from graphql_queries import *
 
 class Mutation(ObjectType):
-    delete_controller = DeleteController.Field()
+    # Project
     delete_project = DeleteProject.Field()
+    # Commune
+    create_commune = CreateCommune.Field()
+    # ControllerModel
+    delete_controller = DeleteController.Field()
+    update_controller = UpdateControllerModel.Field()
+    create_controller = CreateControllerModel.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation)
 

@@ -13,8 +13,7 @@ class CustomMutation(Mutation):
 
     @classmethod
     def log_action(cls, msg, is_error=False):
-        # op = str(graphql_info.operation)
-        op = 'OP'
+        op = str(cls)
         current_user = cls.get_current_user()
         if current_user:
             email = current_user.email
@@ -23,9 +22,9 @@ class CustomMutation(Mutation):
         log = dm.ActionsLog(user=email, context=op, action=msg, origin="GraphQL API")
         log.save()
         if is_error:
-            logger.error(msg)
+            logger.error(log.to_mongo().to_dict())
         else:
-            logger.info(msg)
+            logger.info(log.to_mongo().to_dict())
 
     @classmethod
     def get_current_user(cls):
@@ -110,3 +109,48 @@ class CreateCommune(CustomMutation):
             return cls.log_gql_error('Error saving new commune. {}'.format(str(excep)))
         cls.log_action('Commune {} created'.format(detail.name))
         return commune
+
+class UpdateControllerModel(CustomMutation):
+    class Arguments:
+        detail = UpdateControllerModelInput()
+
+    Output = ControllerModel
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        model = dm.ControllerModel.objects(id=detail.cid).first()
+        if not model:
+            return cls.log_gql_error('Model {} not found'.format(detail.cid))
+        if detail.checksum:
+            model.checksum = detail.checksum
+        if detail.firmware_version:
+            model.firmware_version = detail.firmware_version
+        try:
+            model.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to update model {}. {}'.format(detail.cid, str(excep)))
+        cls.log_action('Model {} updated.'.format(detail.cid))
+        return model
+
+class CreateControllerModel(CustomMutation):
+    class Arguments:
+        detail = CreateControllerModelInput()
+
+    Output = ControllerModel
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        comp = dm.ExternalCompany.objects(name=detail.company).first()
+        if not comp:
+            return cls.log_gql_error('Company {} not found'.format(detail.company))
+        model = dm.ControllerModel()
+        model.company = comp
+        model.model = detail.model
+        model.firmware_version = detail.firmware_version
+        model.checksum = detail.checksum
+        try:
+            model.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to save new model. {}'.format(str(excep)))
+        cls.log_action('Model "{}" created'.format(controller_details.model))
+        return model

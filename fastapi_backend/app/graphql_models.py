@@ -244,3 +244,14 @@ class CreateCommuneInput(InputObjectType):
     name = NonNull(String)
     maintainer = String()
     user_in_charge = String()
+
+class UpdateControllerModelInput(InputObjectType):
+    cid = NonNull(String)
+    firmware_version = String()
+    checksum = String()
+
+class CreateControllerModelInput(InputObjectType):
+    company = NonNull(String)
+    model = NonNull(String)
+    firmware_version = String()
+    checksum = String()
