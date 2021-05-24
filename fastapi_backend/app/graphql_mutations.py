@@ -74,7 +74,7 @@ class DeleteProject(CustomMutation):
     def mutate(cls, root, info, data):
         if data.status == "PRODUCTION":
             return cls.log_gql_error('Cannot delete a project in PRODUCTION status')
-        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status).first()
+        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
         if not proj:
             return cls.log_gql_error('Project {} in status {} not found.'.format(data.oid, data.status))
         try:
@@ -384,7 +384,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
         oid = 'X{}0'.format(data.jid[1:-1])
         if data.status != 'PRODUCTION':
             return cls.log_gql_error('Status {} not allowed for this mutation'.format(data.status))
-        proj = ProjectModel.objects(oid=oid, metadata__status=data.status).first()
+        proj = dm.Project.objects(oid=oid, metadata__status=data.status, metadata__version='latest').first()
         if not proj:
             return cls.log_gql_error('Project {} not found in PRODUCTION status'.format(oid))
         for junc in proj.otu.junctions:
@@ -408,3 +408,69 @@ class SetIntergreen(SetDefaultVehicleIntergreen):
     @classmethod
     def mutate(cls, root, info, data):
         return cls.set_vi(data, is_default=False)
+
+class RejectProject(CustomMutation):
+    class Arguments:
+        data = GetProjectInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        if data.status not in ['NEW', 'UPDATE']:
+            return cls.log_gql_error('Status {} not allowed for this mutation'.format(data.status))
+        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
+        if not proj:
+            return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
+        proj.metadata.status = 'REJECTED'
+        try:
+            # TODO: UPDATE VERSION proj.save()
+            pass
+        except Exception as excep:
+            return cls.log_gql_error('Failed to reject project {} {}. {}'.format(data.oid, data.status, str(excep)))
+        cls.log_action('Project {} {} REJECTED'.format(data.oid, data.status))
+        # TODO: Send email with rejection
+        return data.oid
+
+class AcceptProject(CustomMutation):
+    class Arguments:
+        data = GetProjectInput()
+
+    Output = String
+
+    @classmethod
+    def accept_update(cls, data, proj):
+        base = dm.Project.objects(oid=data.oid, metadata__status='PRODUCTION', metadata__version='latest').first()
+        if not base:
+            return cls.log_gql_error('Failed to accept UPDATE for {}. Base version not found'.format(data.oid))
+        base.metadata.version = datetime.now().isoformat()
+        proj.metadata.status = 'PRODUCTION'
+        try:
+            base.save()
+            proj.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to accept UPDATE for {}. {}'.format(data.oid, str(excep)))
+        cls.log_action('Update for {} ACCEPTED'.format(data.oid))
+        return data.oid
+
+    @classmethod
+    def accept_new(cls, data, proj):
+        proj.metadata.status = 'PRODUCTION'
+        try:
+            proj.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to accept NEW project {}. {}'.format(data.oid, str(excep)))
+        cls.log_action('NEW project {} ACCEPTED'.format(data.oid))
+        return data.oid
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        if data.status not in ['NEW', 'UPDATE']:
+            return cls.log_gql_error('Status {} not allowed for this mutation'.format(data.status))
+        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
+        if not proj:
+            return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
+        if data.status == 'UPDATE':
+            return cls.accept_update(data, proj)
+        else:
+            return cls.accept_new(data, proj)

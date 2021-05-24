@@ -6,6 +6,8 @@ from graphql_queries import *
 class Mutation(ObjectType):
     # Project
     delete_project = DeleteProject.Field()
+    reject_project = RejectProject.Field()
+    accept_project = AcceptProject.Field()
     # Commune
     create_commune = CreateCommune.Field()
     update_commune = UpdateCommune.Field()
