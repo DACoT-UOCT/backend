@@ -4,6 +4,7 @@ from graphql_models import *
 from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
+from complex_operations import ProjectInputToProject
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
@@ -486,3 +487,32 @@ class AcceptProject(CustomMutation):
             return cls.accept_update(data, proj)
         else:
             return cls.accept_new(data, proj)
+
+class CreateProject(CustomMutation):
+    class Arguments:
+        data = CreateProjectInput()
+
+    Output = Project
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        parser = ProjectInputToProject()
+        success, parsed_or_error_msg = parser.parse(data)
+        if not success:
+            return cls.log_gql_error('Failed to parse project input: {}'.format(parsed_or_error_msg))
+        parsed = parsed_or_error_msg
+        if parsed.status != 'NEW':
+            return cls.log_gql_error('Status {} is not allowed for this mutation'.format(parsed.status))
+        existing_new = dm.Project.objects(oid=parsed.oid, metadata__status='NEW', metadata__version='latest')
+        if existing_new:
+            return cls.log_gql_error('Project {} already exists in status NEW'.format())
+        existing_update = dm.Project.objects(oid=parsed.oid, metadata__status='UPDATE', metadata__version='latest')
+        if existing_update:
+            return cls.log_gql_error('Project {} already exists in status UPDATE'.format())
+        try:
+            parsed.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.status, str(excep)))
+        cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.status))
+        return parsed
+
