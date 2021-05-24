@@ -255,3 +255,16 @@ class CreateControllerModelInput(InputObjectType):
     model = NonNull(String)
     firmware_version = String()
     checksum = String()
+
+class CreatePlanParseFailedMessageInput(InputObjectType):
+    plans = NonNull(List(NonNull(String)))
+    message = NonNull(String)
+
+class DeletePlanParseFailedMessageInput(InputObjectType):
+    mid = NonNull(String)
+
+class DeleteCompanyInput(InputObjectType):
+    name = NonNull(String)
+
+class CreateCompanyInput(InputObjectType):
+    name = NonNull(String)

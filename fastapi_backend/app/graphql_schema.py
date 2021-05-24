@@ -12,6 +12,12 @@ class Mutation(ObjectType):
     delete_controller = DeleteController.Field()
     update_controller = UpdateControllerModel.Field()
     create_controller = CreateControllerModel.Field()
+    # FailedPlans
+    create_failed_plan = CreatePlanParseFailedMessage.Field()
+    delete_failed_plan = DeletePlanParseFailedMessage.Field()
+    # Company
+    delete_company = DeleteCompany.Field()
+    create_company = CreateCompany.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation)
 

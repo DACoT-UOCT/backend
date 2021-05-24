@@ -1041,149 +1041,14 @@ class UpdateUser(CustomMutation):
         cls.log_action('User "{}" updated.'.format(user_details.email), info)
         return user
 
-
-class CreateCompanyInput(graphene.InputObjectType):
-    name = graphene.NonNull(graphene.String)
-
-
-class CreateCompany(CustomMutation):
-    class Arguments:
-        company_details = CreateCompanyInput()
-
-    Output = ExternalCompany
-
-    @classmethod
-    def mutate(cls, root, info, company_details):
-        company = ExternalCompanyModel()
-        company.name = company_details.name
-        try:
-            company.save()
-        except (ValidationError, NotUniqueError) as excep:
-            cls.log_action(
-                'Failed to create company "{}". {}'.format(company_details.name, excep),
-                info,
-            )
-            return GraphQLError(str(excep))
-        cls.log_action('Company "{}" created'.format(company.name), info)
-        return company
-
-
-class DeleteCompanyInput(graphene.InputObjectType):
-    name = graphene.NonNull(graphene.String)
-
-
-class DeleteCompany(CustomMutation):
-    class Arguments:
-        company_details = DeleteCompanyInput()
-
-    Output = graphene.String
-
-    @classmethod
-    def mutate(cls, root, info, company_details):
-        company = ExternalCompanyModel.objects(name=company_details.name).first()
-        if not company:
-            cls.log_action(
-                'Failed to delete company "{}". Company not found'.format(
-                    company_details.name
-                ),
-                info,
-            )
-            return GraphQLError('Company "{}" not found'.format(company_details.name))
-        cid = company.id
-        company.delete()
-        cls.log_action('Company "{}" deleted'.format(company_details.name), info)
-        return cid
-
-
-class DeletePlanParseFailedMessageInput(graphene.InputObjectType):
-    mid = graphene.NonNull(graphene.String)
-
-
-class DeletePlanParseFailedMessage(CustomMutation):
-    class Arguments:
-        message_details = DeletePlanParseFailedMessageInput()
-
-    Output = graphene.String
-
-    @classmethod
-    def mutate(cls, root, info, message_details):
-        message = PlanParseFailedMessageModel.objects(id=message_details.mid).first()
-        if not message:
-            cls.log_action(
-                'Failed to delete parse failed message "{}". Message not found'.format(
-                    message_details.mid
-                ),
-                info,
-            )
-            return GraphQLError('Message "{}" not found'.format(message_details.mid))
-        mid = message.id
-        message.delete()
-        cls.log_action('Message "{}" deleted'.format(message_details.mid), info)
-        return mid
-
-
-class CreatePlanParseFailedMessageInput(graphene.InputObjectType):
-    plans = graphene.NonNull(graphene.List(graphene.NonNull(graphene.String)))
-    message = graphene.NonNull(graphene.String)
-
-
-class CreatePlanParseFailedMessage(CustomMutation):
-    class Arguments:
-        message_details = CreatePlanParseFailedMessageInput()
-
-    Output = PlanParseFailedMessage
-
-    @classmethod
-    def mutate(cls, root, info, message_details):
-        comment = CommentModel()
-        comment.message = message_details.message
-        comment.author = cls.get_current_user()
-        failed_plan = PlanParseFailedMessageModel()
-        failed_plan.comment = comment
-        failed_plan.plans = message_details.plans
-        try:
-            failed_plan.save()
-        except (ValidationError, NotUniqueError) as excep:
-            cls.log_action(
-                'Failed to create error message "{}". {}'.format(failed_plan.id, excep),
-                info,
-            )
-            return GraphQLError(str(excep))
-        cls.log_action('Error message "{}" created'.format(failed_plan.id), info)
-        return failed_plan
-
-
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     delete_user = DeleteUser.Field()
     update_user = UpdateUser.Field()
     update_commune = UpdateCommune.Field()
-    create_commune = CreateCommune.Field()
-    create_company = CreateCompany.Field()
-    delete_company = DeleteCompany.Field()
-    delete_failed_plan = DeletePlanParseFailedMessage.Field()
-    create_failed_plan = CreatePlanParseFailedMessage.Field()
-    create_controller = CreateControllerModel.Field()
-    update_controller = UpdateControllerModel.Field()
     create_project = CreateProject.Field()
-    delete_project = DeleteProject.Field()
     accept_project = AcceptProject.Field()
     reject_project = RejectProject.Field()
     update_project = UpdateProject.Field()
     set_default_intergreen = SetDefaultVehicleIntergreen.Field()
     set_veh_intergreen = SetIntergreen.Field()
-    delete_controller = DeleteController.Field()
-
-
-dacot_schema = graphene.Schema(query=Query, mutation=Mutation)
-
-
-class GraphQLLogFilter(logging.Filter):
-    def filter(self, record):
-        if "graphql.error.located_error.GraphQLLocatedError:" in record.msg:
-            return False
-        return True
-
-
-# Disable graphene logging
-logging.getLogger("graphql.execution.utils").addFilter(GraphQLLogFilter())

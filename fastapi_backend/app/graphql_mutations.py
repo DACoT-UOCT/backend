@@ -154,3 +154,77 @@ class CreateControllerModel(CustomMutation):
             return cls.log_gql_error('Failed to save new model. {}'.format(str(excep)))
         cls.log_action('Model "{}" created'.format(controller_details.model))
         return model
+
+class CreatePlanParseFailedMessage(CustomMutation):
+    class Arguments:
+        detail = CreatePlanParseFailedMessageInput()
+
+    Output = PlanParseFailedMessage
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        comment = dm.Comment()
+        comment.message = detail.message
+        comment.author = cls.get_current_user()
+        failed_plan = dm.PlanParseFailedMessage()
+        failed_plan.comment = comment
+        failed_plan.plans = detail.plans
+        try:
+            failed_plan.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to create error message. {}'.format(str(excep)))
+        cls.log_action('Error message {} created'.format(failed_plan.id))
+        return failed_plan
+
+class DeletePlanParseFailedMessage(CustomMutation):
+    class Arguments:
+        detail = DeletePlanParseFailedMessageInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        message = dm.PlanParseFailedMessage.objects(id=detail.mid).first()
+        if not message:
+            return cls.log_gql_error('Message {} not found.'.format(detail.mid))
+        try:
+            message.delete()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to delete message {}. {}'.format(detail.mid, str(excep)))
+        cls.log_action('Message {} deleted'.format(detail.mid))
+        return detail.mid
+
+class DeleteCompany(CustomMutation):
+    class Arguments:
+        detail = DeleteCompanyInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        comp = dm.ExternalCompany.objects(name=detail.name).first()
+        if not comp:
+            return cls.log_gql_error('Company {} not found'.format(detail.name))
+        try:
+            company.delete()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to delete company {}. {}'.format(detail.name, str(excep)))
+        cls.log_action('Company {} deleted'.format(detail.name))
+        return detail.name
+
+class CreateCompany(CustomMutation):
+    class Arguments:
+        detail = CreateCompanyInput()
+
+    Output = ExternalCompany
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        comp = detail.ExternalCompany()
+        comp.name = detail.name
+        try:
+            comp.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to save new company {}. {}'.format(detail.name, str(excep)))
+        cls.log_action('Company {} saved'.format(detail.name))
+        return comp
