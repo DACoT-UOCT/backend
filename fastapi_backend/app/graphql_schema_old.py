@@ -45,6 +45,7 @@ class Query(graphene.ObjectType):
     )
     check_otu_exists = graphene.Boolean(oid=graphene.NonNull(graphene.String))
     # $ full_schema_drop = graphene.Boolean() # Disabled in production
+    # TODO: Move compute_tables to a utility class
     compute_tables = graphene.Boolean(jid=graphene.NonNull(graphene.String), status=graphene.NonNull(graphene.String))
 
     def resolve_locations(self, info, status):
@@ -316,98 +317,6 @@ class Query(graphene.ObjectType):
 
     def resolve_user(self, info, email):
         return UserModel.objects(email=email).first()
-
-class SetDefaultVehicleIntergreen(CustomMutation):
-    class Arguments:
-        data = SetVehicleIntergreenInput()
-
-    Output = graphene.String
-
-    @classmethod
-    def update_model_default(cls, data, info, proj, junc):
-        veh_inters = []
-        for ped_inter in junc.intergreens:
-            new_inter = JunctionIntergreenValueModel()
-            new_inter.phfrom = ped_inter.phfrom
-            new_inter.phto = ped_inter.phto
-            new_inter.value = 4
-            veh_inters.append(new_inter)
-        junc.veh_intergreens = veh_inters
-        junc.metadata.use_default_vi4 = True
-        try:
-            proj.save()
-        except ValidationError as excep:
-            msg = 'Failed to save project. Cause: {}'.format(str(excep))
-            cls.log_action(msg, info)
-            return GraphQLError(msg)
-        return data.jid
-
-    @classmethod
-    def update_model_custom(cls, data, info, proj, junc):
-        input_inters = {}
-        for phase in data.phases:
-            k = (phase['phfrom'], phase['phto'])
-            input_inters[k] = phase['value']
-        inpl = len(input_inters)
-        needed = len(junc.intergreens)
-        if inpl != needed:
-            msg = 'Failed to set VI values, number of phases in input mismatch. Needed {}, got {}'.format(needed, inpl)
-            cls.log_action(msg, info)
-            return GraphQLError(msg)
-        veh_inters = []
-        for ped_inter in junc.intergreens:
-            new_inter = JunctionIntergreenValueModel()
-            k = (ped_inter.phfrom, ped_inter.phto)
-            if k not in input_inters:
-                msg = 'Missing phase pair in input: {}'.format(k)
-                cls.log_action(msg, info)
-                return GraphQLError(msg)
-            new_inter.phfrom = ped_inter.phfrom
-            new_inter.phto = ped_inter.phto
-            new_inter.value = input_inters[k]
-            veh_inters.append(new_inter)
-        junc.veh_intergreens = veh_inters
-        junc.metadata.use_default_vi4 = False
-        try:
-            proj.save()
-        except ValidationError as excep:
-            msg = 'Failed to save project. Cause: {}'.format(str(excep))
-            cls.log_action(msg, info)
-            return GraphQLError(msg)
-        return data.jid
-
-    @classmethod
-    def set_vi(cls, data, info, is_default=True):
-        oid = 'X{}0'.format(data.jid[1:-1])
-        proj = ProjectModel.objects(oid=oid, metadata__status=data.status).first()
-        if not proj:
-            msg = 'Failed to find project "{}" in status "{}". Project not found'.format(oid, data.status)
-            cls.log_action(msg, info)
-            return GraphQLError(msg)
-        for junc in proj.otu.junctions:
-            if junc.jid == data.jid:
-                if is_default:
-                    return cls.update_model_default(data, info, proj, junc)
-                else:
-                    return cls.update_model_custom(data, info, proj, junc)
-        msg = 'Failed to find junction "{}" in project "{}". Junction not found'.format(data.jid, oid)
-        cls.log_action(msg, info)
-        return GraphQLError(msg)
-
-    @classmethod
-    def mutate(cls, root, info, data):
-        return cls.set_vi(data, info)
-
-
-class SetIntergreen(SetDefaultVehicleIntergreen):
-    class Arguments:
-        data = SetVehicleIntergreenInput()
-
-    Output = graphene.String
-
-    @classmethod
-    def mutate(cls, root, info, data):
-        return cls.set_vi(data, info, is_default=False)
 
 
 class CreateProject(CustomMutation):
