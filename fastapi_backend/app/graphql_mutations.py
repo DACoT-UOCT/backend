@@ -3,6 +3,7 @@ from graphene import *
 from graphql_models import *
 from fastapi.logger import logger
 from graphql import GraphQLError
+from copy import deepcopy
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
@@ -27,6 +28,15 @@ class CustomMutation(Mutation):
             logger.error(log.to_mongo().to_dict())
         else:
             logger.info(log.to_mongo().to_dict())
+
+    @classmethod
+    def generate_new_project_version(cls, proj):
+        base = proj
+        new = deepcopy(base)
+        new.id = None
+        base.metadata.version = datetime.now().isoformat()
+        new.metadata.version = 'latest'
+        return base, new
 
     @classmethod
     def get_current_user(cls):
@@ -331,7 +341,7 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     Output = String
 
     @classmethod
-    def update_model_default(cls, data, proj, junc):
+    def update_model_default(cls, data, base, proj, junc):
         veh_inters = []
         for ped_inter in junc.intergreens:
             new_inter = dm.JunctionIntergreenValue()
@@ -342,15 +352,15 @@ class SetDefaultVehicleIntergreen(CustomMutation):
         junc.veh_intergreens = veh_inters
         junc.metadata.use_default_vi4 = True
         try:
-            # TODO: UPDATE VERSION proj.save()
-            pass
+            base.save()
+            proj.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to update project ({}). Cause: {}'.format(data.jid, str(excep)))
         cls.log_action('Updated DEFAULT vehicle intergreens for {}'.format(data.jid))
         return data.jid
 
     @classmethod
-    def update_model_custom(cls, data, proj, junc):
+    def update_model_custom(cls, data, base, proj, junc):
         input_inters = {}
         for phase in data.phases:
             k = (phase['phfrom'], phase['phto'])
@@ -372,8 +382,8 @@ class SetDefaultVehicleIntergreen(CustomMutation):
         junc.veh_intergreens = veh_inters
         junc.metadata.use_default_vi4 = False
         try:
-            # TODO: UPDATE VERSION proj.save()
-            pass
+            base.save()
+            proj.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to update project ({}). Cause: {}'.format(data.jid, str(excep)))
         cls.log_action('Updated custom vehicle intergreens for {}'.format(data.jid))
@@ -387,12 +397,13 @@ class SetDefaultVehicleIntergreen(CustomMutation):
         proj = dm.Project.objects(oid=oid, metadata__status=data.status, metadata__version='latest').first()
         if not proj:
             return cls.log_gql_error('Project {} not found in PRODUCTION status'.format(oid))
+        base, proj = cls.generate_new_project_version(proj)
         for junc in proj.otu.junctions:
             if junc.jid == data.jid:
                 if is_default:
-                    return cls.update_model_default(data, proj, junc)
+                    return cls.update_model_default(data, base, proj, junc)
                 else:
-                    return cls.update_model_custom(data, proj, junc)
+                    return cls.update_model_custom(data, base, proj, junc)
         return cls.log_gql_error('Junction {} not found in project {}'.format(data.jid, oid))
 
     @classmethod
@@ -422,10 +433,11 @@ class RejectProject(CustomMutation):
         proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
         if not proj:
             return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
+        base, proj = cls.generate_new_project_version(proj)
         proj.metadata.status = 'REJECTED'
         try:
-            # TODO: UPDATE VERSION proj.save()
-            pass
+            base.save()
+            proj.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to reject project {} {}. {}'.format(data.oid, data.status, str(excep)))
         cls.log_action('Project {} {} REJECTED'.format(data.oid, data.status))
