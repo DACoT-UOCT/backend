@@ -268,3 +268,24 @@ class DeleteCompanyInput(InputObjectType):
 
 class CreateCompanyInput(InputObjectType):
     name = NonNull(String)
+
+class CreateUserInput(InputObjectType):
+    is_admin = NonNull(Boolean)
+    full_name = NonNull(String)
+    email = NonNull(String)
+    role = NonNull(String)
+    area = NonNull(String)
+    company = String()
+
+class DeleteUserInput(InputObjectType):
+    email = NonNull(String)
+
+class UpdateUserInput(InputObjectType):
+    email = NonNull(String)
+    is_admin = Boolean()
+    full_name = String()
+
+class UpdateCommuneInput(InputObjectType):
+    code = NonNull(Int)
+    maintainer = String()
+    user_in_charge = String()

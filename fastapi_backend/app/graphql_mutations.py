@@ -228,3 +228,96 @@ class CreateCompany(CustomMutation):
             return cls.log_gql_error('Failed to save new company {}. {}'.format(detail.name, str(excep)))
         cls.log_action('Company {} saved'.format(detail.name))
         return comp
+
+class CreateUser(CustomMutation):
+    class Arguments:
+        detail = CreateUserInput()
+
+    Output = User
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        user = dm.User()
+        user.is_admin = detail.is_admin
+        user.full_name = detail.full_name
+        user.email = detail.email
+        user.role = detail.role
+        user.area = detail.area
+        if detail.company:
+            user.company = dm.ExternalCompany.objects(name=detail.company).first()
+            if not user.company:
+                return cls.log_gql_error('Company {} not found'.format(detail.company))
+        try:
+            user.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to save user {}. {}'.format(detail.email, str(excep)))
+        cls.log_action('User {} created'.format(detail.email))
+        return user
+
+class DeleteUser(CustomMutation):
+    class Arguments:
+        detail = DeleteUserInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        user = UserModel.objects(email=detail.email).first()
+        if not user:
+            return cls.log_gql_error('User {} not found.'.format(detail.email))
+        try:
+            user.delete()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to delete user {}. {}'.format(detail.email, str(excep)))
+        cls.log_action('User {} deleted.'.format(detail.email))
+        return detail.email
+
+class UpdateUser(CustomMutation):
+    class Arguments:
+        detail = UpdateUserInput()
+
+    Output = User
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        user = UserModel.objects(email=detail.email).first()
+        if not user:
+            return cls.log_gql_error('User {} not found'.format(detail.email))
+        if detail.is_admin:
+            user.is_admin = detail.is_admin
+        if detail.full_name:
+            user.full_name = detail.full_name
+        try:
+            user.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to update user {}. {}'.format(detail.email, str(excep)))
+        cls.log_action('User {} updated'.format(detail.email))
+        return user
+
+class UpdateCommune(CustomMutation):
+    class Arguments:
+        detail = UpdateCommuneInput()
+
+    Output = Commune
+
+    @classmethod
+    def mutate(cls, root, info, detail):
+        commune = dm.Commune.objects(code=detail.code).first()
+        if not commune:
+            return cls.log_gql_error('Commune {} not found'.format(detail.code))
+        if detail.maintainer:
+            comp = dm.ExternalCompany.objects(name=detail.maintainer).first()
+            if not comp:
+                return cls.log_gql_error('Company {} not found'.format(detail.maintainer))
+            commune.maintainer = comp
+        if detail.user_in_charge:
+            user = dm.User.objects(email=detail.user_in_charge).first()
+            if not user:
+                return cls.log_gql_error('User {} not found'.format(detail.user_in_charge))
+            commune.user_in_charge = user
+        try:
+            commune.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to update commune {}. {}'.format(detail.code, str(excep)))
+        cls.log_action('Commune {} updated'.format(detail.code))
+        return commune

@@ -8,6 +8,7 @@ class Mutation(ObjectType):
     delete_project = DeleteProject.Field()
     # Commune
     create_commune = CreateCommune.Field()
+    update_commune = UpdateCommune.Field()
     # ControllerModel
     delete_controller = DeleteController.Field()
     update_controller = UpdateControllerModel.Field()
@@ -18,6 +19,10 @@ class Mutation(ObjectType):
     # Company
     delete_company = DeleteCompany.Field()
     create_company = CreateCompany.Field()
+    # User
+    create_user = CreateUser.Field()
+    delete_user = DeleteUser.Field()
+    update_user = UpdateUser.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation)
 
