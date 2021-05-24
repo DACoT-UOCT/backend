@@ -8,7 +8,8 @@ class Mutation(ObjectType):
     delete_project = DeleteProject.Field()
     reject_project = RejectProject.Field()
     accept_project = AcceptProject.Field()
-    create_project = CreateProject.Field()
+    create_project = CreateUpdateProject.Field()
+    update_project = CreateUpdateProject.Field()
     # Commune
     create_commune = CreateCommune.Field()
     update_commune = UpdateCommune.Field()

@@ -488,7 +488,7 @@ class AcceptProject(CustomMutation):
         else:
             return cls.accept_new(data, proj)
 
-class CreateProject(CustomMutation):
+class CreateUpdateProject(CustomMutation):
     class Arguments:
         data = CreateProjectInput()
 
@@ -501,7 +501,7 @@ class CreateProject(CustomMutation):
         if not success:
             return cls.log_gql_error('Failed to parse project input: {}'.format(parsed_or_error_msg))
         parsed = parsed_or_error_msg
-        if parsed.status != 'NEW':
+        if parsed.status not in ['NEW', 'UPDATE']:
             return cls.log_gql_error('Status {} is not allowed for this mutation'.format(parsed.status))
         existing_new = dm.Project.objects(oid=parsed.oid, metadata__status='NEW', metadata__version='latest')
         if existing_new:
@@ -515,4 +515,3 @@ class CreateProject(CustomMutation):
             return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.status, str(excep)))
         cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.status))
         return parsed
-

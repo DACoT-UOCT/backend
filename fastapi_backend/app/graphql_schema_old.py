@@ -317,33 +317,3 @@ class Query(graphene.ObjectType):
 
     def resolve_user(self, info, email):
         return UserModel.objects(email=email).first()
-
-
-class UpdateProject(CreateProject):
-    class Arguments:
-        project_details = CreateProjectInput()
-
-    Output = Project
-
-    @classmethod
-    def mutate(cls, root, info, project_details):
-        update_input = cls.build_project_model(project_details, info)
-        if isinstance(update_input, GraphQLError):
-            return update_input
-        update_input.metadata.status = "UPDATE"
-        try:
-            update_input.save()
-        except ValidationError as excep:
-            cls.log_action(
-                'Failed to create update for project "{}". {}'.format(
-                    update_input.oid, excep
-                ),
-                info,
-            )
-            return GraphQLError(str(excep))
-        return update_input
-
-
-
-class Mutation(graphene.ObjectType):
-    update_project = UpdateProject.Field()
