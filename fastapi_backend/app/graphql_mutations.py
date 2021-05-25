@@ -4,7 +4,7 @@ from graphql_models import *
 from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
-from complex_operations import ProjectInputToProject
+from complex_operations import ProjectInputToProject, ComputeJunctionPlansTables
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
@@ -502,10 +502,39 @@ class CreateUpdateProject(CustomMutation):
         if existing_update:
             return cls.log_gql_error('Project {} already exists in status UPDATE'.format())
         if parsed.metadata.status == 'UPDATE':
-            pass # TODO: Check that base version exists
+            base = dm.Project.objects(oid=data.oid, metadata__status='PRODUCTION', metadata__version='latest').first()
+            if not base:
+                return cls.log_gql_error('Failed to create UPDATE, base version for {} not found'.format(data.oid))
         try:
             parsed.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.metadata.status, str(excep)))
         cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.metadata.status))
         return parsed.id
+
+class ComputeTimingTables(CustomMutation):
+    class Arguments:
+        data = GetProjectInput()
+
+    Output = Boolean
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        if data.status != 'PRODUCTION':
+            return cls.log_gql_error('Status {} not allowed for this mutation'.format(data.status))
+        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
+        if not proj:
+            return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
+        base, proj = cls.generate_new_project_version(proj)
+        try:
+            compute = ComputeProjectPlansTables(proj)
+            proj = compute.run()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to compute tables for {}. {}'.format(data.oid, str(excep)))
+        try:
+            base.save()
+            proj.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to save computed timings for {}. {}'.format(data.oid, str(excep)))
+        cls.log_action('Saved computed timings for {}'.format(data.oid))
+        return True

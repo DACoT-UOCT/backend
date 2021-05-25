@@ -32,7 +32,7 @@ class Mutation(ObjectType):
     set_default_veh_intergreen = SetDefaultVehicleIntergreen.Field()
     set_veh_intergreen = SetIntergreen.Field()
     # Plans
-    # compute_tables = None
+    compute_tables = ComputeTimingTables.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation, types=[User])
 

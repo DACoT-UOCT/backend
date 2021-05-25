@@ -3,6 +3,14 @@ import magic
 import dacot_models as dm
 from graphql_models import *
 
+class ComputeJunctionPlansTables:
+    def __init__(self, project):
+        self.__proj = project
+
+    def run(self):
+        return self.__proj
+
+
 class ProjectInputToProject:
     def __init__(self, current_user):
         self.__user = current_user
