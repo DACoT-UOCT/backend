@@ -41,8 +41,7 @@ class CustomMutation(Mutation):
 
     @classmethod
     def get_current_user(cls):
-        # Returns the currently logged user
-        # TODO: FIXME: For now, we return the same user for all requests
+        # TODO: For now, we return the same user for all requests
         return dm.User.objects(email="seed@dacot.uoct.cl").first()
 
     @classmethod
@@ -50,13 +49,6 @@ class CustomMutation(Mutation):
         message = 'DACoT_GraphQLError: {}'.format(message)
         cls.log_action(message, is_error=True)
         return GraphQLError(message)
-
-    @classmethod
-    def get_b64file_data(cls, base64data):
-        _, filedata = base64data.split(",")
-        b64bytes = base64.b64decode(filedata)
-        mime = magic.from_buffer(b64bytes[0:2048], mime=True)
-        return b64bytes, mime
 
 class DeleteController(CustomMutation):
     class Arguments:
@@ -463,7 +455,7 @@ class AcceptProject(CustomMutation):
             proj.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to accept UPDATE for {}. {}'.format(data.oid, str(excep)))
-        cls.log_action('Update for {} ACCEPTED'.format(data.oid))
+        cls.log_action('UPDATE for {} ACCEPTED'.format(data.oid))
         return data.oid
 
     @classmethod
@@ -496,22 +488,24 @@ class CreateUpdateProject(CustomMutation):
 
     @classmethod
     def mutate(cls, root, info, data):
-        parser = ProjectInputToProject()
+        parser = ProjectInputToProject(cls.get_current_user())
         success, parsed_or_error_msg = parser.parse(data)
         if not success:
             return cls.log_gql_error('Failed to parse project input: {}'.format(parsed_or_error_msg))
         parsed = parsed_or_error_msg
-        if parsed.status not in ['NEW', 'UPDATE']:
-            return cls.log_gql_error('Status {} is not allowed for this mutation'.format(parsed.status))
+        if parsed.metadata.status not in ['NEW', 'UPDATE']:
+            return cls.log_gql_error('Status {} is not allowed for this mutation'.format(parsed.metadata.status))
         existing_new = dm.Project.objects(oid=parsed.oid, metadata__status='NEW', metadata__version='latest')
         if existing_new:
             return cls.log_gql_error('Project {} already exists in status NEW'.format())
         existing_update = dm.Project.objects(oid=parsed.oid, metadata__status='UPDATE', metadata__version='latest')
         if existing_update:
             return cls.log_gql_error('Project {} already exists in status UPDATE'.format())
+        if parsed.metadata.status == 'UPDATE':
+            pass # TODO: Check that base version exists
         try:
             parsed.save()
         except Exception as excep:
-            return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.status, str(excep)))
-        cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.status))
+            return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.metadata.status, str(excep)))
+        cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.metadata.status))
         return parsed
