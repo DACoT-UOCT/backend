@@ -484,7 +484,7 @@ class CreateUpdateProject(CustomMutation):
     class Arguments:
         data = CreateProjectInput()
 
-    Output = Project
+    Output = String
 
     @classmethod
     def mutate(cls, root, info, data):
@@ -508,4 +508,4 @@ class CreateUpdateProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.metadata.status, str(excep)))
         cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.metadata.status))
-        return parsed
+        return parsed.id

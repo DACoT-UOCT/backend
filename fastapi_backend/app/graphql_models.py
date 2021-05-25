@@ -29,7 +29,7 @@ class Poles(MOT):
     class Meta:
         model = dm.Poles
 
-class Project(MCF):
+class Project(MOT):
     class Meta:
         model = dm.Project
         interfaces = (Node,)
@@ -65,6 +65,7 @@ class Comment(MOT):
 class PlanParseFailedMessage(MOT):
     class Meta:
         model = dm.PlanParseFailedMessage
+        interfaces = (Node,)
 
 class PartialPlanParseFailedMessage(ObjectType):
     id = NonNull(String)
@@ -82,6 +83,7 @@ class User(MOT):
 class ActionsLog(MOT):
     class Meta:
         model = dm.ActionsLog
+        interfaces = (Node,)
 
 class Commune(MOT):
     class Meta:

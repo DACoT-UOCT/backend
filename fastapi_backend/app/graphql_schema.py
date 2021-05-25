@@ -2,6 +2,7 @@ import logging
 from graphene import *
 from graphql_mutations import *
 from graphql_queries import *
+from graphql_models import *
 
 class Mutation(ObjectType):
     # Project
@@ -33,7 +34,7 @@ class Mutation(ObjectType):
     # Plans
     # compute_tables = None
 
-dacot_schema = Schema(query=Query, mutation=Mutation)
+dacot_schema = Schema(query=Query, mutation=Mutation, types=[User])
 
 class GraphQLLogFilter(logging.Filter):
     def filter(self, record):
