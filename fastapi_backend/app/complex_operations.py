@@ -7,7 +7,128 @@ class ComputeJunctionPlansTables:
     def __init__(self, project):
         self.__proj = project
 
+    def __compute_junc_tables(self, junc):
+        max_phid = -1
+        isys = {}
+        for plan in junc.plans:
+            plid = plan.plid
+            isys[plid] = {}
+            for sys in plan.system_start:
+                isys[plid][sys.phid] = sys.value
+                if sys.phid > max_phid:
+                    max_phid = sys.phid
+        eps = {}
+        for intg in junc.intergreens:
+            intgfrom = ord(intg.phfrom) - 64
+            intgto = ord(intg.phto) - 64
+            if intgfrom not in eps:
+                eps[intgfrom] = {}
+            eps[intgfrom][intgto] = int(intg.value)
+        evs = {}
+        for intg in junc.veh_intergreens:
+            intgfrom = ord(intg.phfrom) - 64
+            intgto = ord(intg.phto) - 64
+            if intgfrom not in evs:
+                evs[intgfrom] = {}
+            evs[intgfrom][intgto] = int(intg.value)
+        temp_res = {}
+        for plan in junc.plans:
+            plid = plan.plid
+            temp_res[plid] = {}
+            for phid, ph_isys in isys[plid].items():
+                if phid - 1 in eps:
+                    pheps = eps[phid - 1][phid]
+                    phevs = evs[phid - 1][phid]
+                else:
+                    pheps = eps[max_phid][1]
+                    phevs = evs[max_phid][1]
+                ifs = ph_isys + pheps - phevs
+                alpha = int(ifs > plan.cycle)
+                ifs = ifs - alpha * plan.cycle
+                iv = ifs + phevs
+                beta = int(iv > plan.cycle)
+                iv = iv - beta * plan.cycle
+                row = (plid, plan.cycle, ifs, phevs, iv, pheps, ph_isys)
+                temp_res[plid][phid] = row
+        final_result = {}
+        for plid, phases in temp_res.items():
+            final_result[plid] = {}
+            for phid, row in phases.items():
+                if phid + 1 in phases:
+                    phid_next = phid + 1
+                else:
+                    phid_next = 1
+                tvv = phases[phid_next][2] - row[4]
+                gamma = int(tvv < 0)
+                tvv = tvv + gamma * row[1]
+                tvp = phases[phid_next][2] - row[4] - (phases[phid_next][5] - phases[phid_next][3])
+                delta = int(tvp < 0)
+                tvp = tvp + delta * row[1]
+                new_row = (row[0], row[1], row[2], row[3], row[4], tvv, tvp, row[5], row[6])
+                final_result[plid][phid] = new_row
+        return final_result
+
+    def __rebuild_junction_plans(self, junc, table):
+        new_plans = []
+        veh_inters = []
+        ped_inters = []
+        for inter in junc.intergreens:
+            inter_i = dm.JunctionPlanIntergreenValue()
+            inter_i.value = int(inter.value)
+            inter_i.phfrom = ord(inter.phfrom) - 64
+            inter_i.phto = ord(inter.phto) - 64
+            ped_inters.append(inter_i)
+        for inter in junc.veh_intergreens:
+            inter_i = dm.JunctionPlanIntergreenValue()
+            inter_i.value = int(inter.value)
+            inter_i.phfrom = ord(inter.phfrom) - 64
+            inter_i.phto = ord(inter.phto) - 64
+            veh_inters.append(inter_i)
+        for plan in junc.plans:
+            starts = []
+            green_starts = []
+            veh_greens = []
+            ped_greens = []
+            for phid, row in table[plan.plid].items():
+                start_i = dm.JunctionPlanPhaseValue()
+                start_i.phid = phid
+                start_i.value = row[2]
+                starts.append(start_i)
+                green_st_i = dm.JunctionPlanPhaseValue()
+                green_st_i.phid = phid
+                green_st_i.value = row[4]
+                green_starts.append(green_st_i)
+                veh_g_i = dm.JunctionPlanPhaseValue()
+                veh_g_i.phid = phid
+                veh_g_i.value = row[5]
+                veh_greens.append(veh_g_i)
+                ped_g_i = dm.JunctionPlanPhaseValue()
+                ped_g_i.phid = phid
+                ped_g_i.value = row[6]
+                ped_greens.append(ped_g_i)
+            plan.phase_start = starts
+            plan.green_start = green_starts
+            plan.vehicle_green = veh_greens
+            plan.pedestrian_green = ped_greens
+            plan.vehicle_intergreen = veh_inters
+            plan.pedestrian_intergreen = ped_inters
+            new_plans.append(plan)
+        junc.plans = new_plans
+        return junc
+
+    def __update_junction(self, junc):
+        try:
+            table = self.__compute_junc_tables(junc)
+        except Exception as excep:
+            raise ValueError('Failed to compute tables for JID={}. {}'.format(junc.jid, str(excep)))
+        junc = self.__rebuild_junction_plans(junc, table)
+        return junc
+
     def run(self):
+        new_juncs = []
+        for junc in self.__proj.otu.junctions:
+            new_juncs.append(self.__update_junction(junc))
+        self.__proj.otu.junctions = new_juncs
         return self.__proj
 
 
