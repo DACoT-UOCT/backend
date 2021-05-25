@@ -244,4 +244,4 @@ class PlanParseFailedMessage(Document):
 class APIKeyUsers(Document):
     meta = {"collection": "APIKeyUsers"}
     key = StringField(required=True, unique=True)
-    secret = StringField(required=True)
+    secret = StringField(required=True, unique=True)
