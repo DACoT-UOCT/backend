@@ -243,7 +243,8 @@ class GetProjectInput(InputObjectType):
 class AcceptRejectProjectInput(InputObjectType):
     oid = NonNull(String)
     status = NonNull(String)
-    message = NonNull(String)
+    message = String()
+    img = String()
 
 class CreateCommuneInput(InputObjectType):
     code = NonNull(Int)
