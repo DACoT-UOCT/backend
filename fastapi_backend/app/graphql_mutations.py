@@ -415,7 +415,7 @@ class SetIntergreen(SetDefaultVehicleIntergreen):
 
 class RejectProject(CustomMutation):
     class Arguments:
-        data = GetProjectInput()
+        data = AcceptRejectProjectInput()
 
     Output = String
 
@@ -434,12 +434,12 @@ class RejectProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to reject project {} {}. {}'.format(data.oid, data.status, str(excep)))
         cls.log_action('Project {} {} REJECTED'.format(data.oid, data.status))
-        # TODO: Send email with rejection
+        # TODO: Send email with rejection (data.message)
         return data.oid
 
 class AcceptProject(CustomMutation):
     class Arguments:
-        data = GetProjectInput()
+        data = AcceptRejectProjectInput()
 
     Output = String
 
@@ -456,6 +456,7 @@ class AcceptProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to accept UPDATE for {}. {}'.format(data.oid, str(excep)))
         cls.log_action('UPDATE for {} ACCEPTED'.format(data.oid))
+        # TODO: Send email with acceptance (data.message)
         return data.oid
 
     @classmethod

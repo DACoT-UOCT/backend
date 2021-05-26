@@ -241,6 +241,11 @@ class GetProjectInput(InputObjectType):
     oid = NonNull(String)
     status = NonNull(String)
 
+class AcceptRejectProjectInput(InputObjectType):
+    oid = NonNull(String)
+    status = NonNull(String)
+    message = NonNull(String)
+
 class CreateCommuneInput(InputObjectType):
     code = NonNull(Int)
     name = NonNull(String)
