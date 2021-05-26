@@ -166,11 +166,6 @@ class ProjectInputToProject:
             if not comp:
                 raise ValueError('Company {} not found'.format(cname))
             m.installation_company = comp
-        mname = metain.maintainer
-        maintainer = dm.ExternalCompany.objects(name=mname).first()
-        if not maintainer:
-            raise ValueError('Company {} not found'.format(mname))
-        m.maintainer = maintainer
         commune = dm.Commune.objects(code=metain.commune).first()
         if not commune:
             raise ValueError('Commune {} not found'.format(metain.commune))

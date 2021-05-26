@@ -164,7 +164,6 @@ class ProjectPolesInput(InputObjectType):
 class ProjectMetaInput(InputObjectType):
     installation_date = Date()
     installation_company = String()
-    maintainer = NonNull(String)
     commune = NonNull(Int)
     img = String()
     pdf_data = String()

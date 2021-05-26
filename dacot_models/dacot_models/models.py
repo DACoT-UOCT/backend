@@ -154,7 +154,6 @@ class ProjectMeta(EmbeddedDocument):
     status_user = ReferenceField(User, required=True)
     installation_date = DateTimeField()
     installation_company = ReferenceField(ExternalCompany)
-    maintainer = ReferenceField(ExternalCompany)
     commune = ReferenceField(Commune)
     img = FileField()
     pdf_data = FileField()
