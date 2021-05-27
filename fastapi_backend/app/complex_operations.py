@@ -142,15 +142,16 @@ class ProjectInputToProject:
 
     def __is_valid_base64(self, b64s):
         try:
-            return base64.b64encode(base64.b64decode(b64s)) == b64s
+            decoded = base64.b64encode(base64.b64decode(b64s)).decode('utf-8')
+            return decoded == b64s
         except Exception:
             return False
 
     def __get_b64file_data(self, base64data):
+        _, base64data = base64data.split(",")
         if not self.__is_valid_base64(base64data):
             raise ValueError('Invalid base64 data')
-        _, filedata = base64data.split(",")
-        b64bytes = base64.b64decode(filedata)
+        b64bytes = base64.b64decode(base64data)
         mime = magic.from_buffer(b64bytes[0:2048], mime=True)
         return b64bytes, mime
 
