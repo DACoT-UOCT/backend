@@ -498,10 +498,10 @@ class CreateUpdateProject(CustomMutation):
             return cls.log_gql_error('Status {} is not allowed for this mutation'.format(parsed.metadata.status))
         existing_new = dm.Project.objects(oid=parsed.oid, metadata__status='NEW', metadata__version='latest')
         if existing_new:
-            return cls.log_gql_error('Project {} already exists in status NEW'.format())
+            return cls.log_gql_error('Project {} already exists in status NEW'.format(data.oid))
         existing_update = dm.Project.objects(oid=parsed.oid, metadata__status='UPDATE', metadata__version='latest')
         if existing_update:
-            return cls.log_gql_error('Project {} already exists in status UPDATE'.format())
+            return cls.log_gql_error('Project {} already exists in status UPDATE'.format(data.oid))
         if parsed.metadata.status == 'UPDATE':
             base = dm.Project.objects(oid=data.oid, metadata__status='PRODUCTION', metadata__version='latest').first()
             if not base:
