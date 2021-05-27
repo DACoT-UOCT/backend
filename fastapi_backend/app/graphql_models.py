@@ -226,6 +226,7 @@ class ProjectOTUInput(InputObjectType):
 class CreateProjectInput(InputObjectType):
     oid = NonNull(String)
     metadata = NonNull(ProjectMetaInput)
+    status = NonNull(String)
     otu = NonNull(ProjectOTUInput)
     controller = NonNull(ControllerLocationInput)
     headers = List(ProjectHeadersInput)

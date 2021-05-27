@@ -322,7 +322,7 @@ class ProjectInputToProject:
     def __build_headers(self, data):
         hds = []
         for hd in data.headers:
-            h = dm.ProjectHeaderItem()
+            h = dm.HeaderItem()
             h.hal = hd.hal
             h.led = hd.led
             h.type = hd.type
@@ -362,7 +362,7 @@ class ProjectInputToProject:
         p.observation = self.__build_observation(data)
         return p
 
-    def parse(data):
+    def parse(self, data):
         try:
             return True, self.__build_project(data)
         except Exception as excep:
