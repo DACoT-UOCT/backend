@@ -21,6 +21,7 @@ class Query(ObjectType):
     versions = List(PartialVersionInfo, oid=NonNull(String))
     version = Field(Project, oid=NonNull(String), vid=NonNull(String))
     login_api_key = String(key=NonNull(String), secret=NonNull(String))
+    check_otu_exists = Boolean(oid=NonNull(String))
 
     def resolve_users(self, info):
         return dm.User.objects.all()
@@ -84,3 +85,6 @@ class Query(ObjectType):
             token = authorize.create_access_token(subject=key)
             return token
         return None
+
+    def resolve_check_otu_exists(self, info, oid):
+        return dm.Project.objects(oid=oid, metadata__status='PRODUCTION', metadata__version='latest').first() != None
