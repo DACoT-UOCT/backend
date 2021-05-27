@@ -194,6 +194,7 @@ class JunctionPhasesSequenceInput(InputObjectType):
 class JunctionMetadataInput(InputObjectType):
     coordinates = NonNull(List(NonNull(Float)))
     address_reference = NonNull(String)
+    use_default_vi4 = Boolean()
 
 class JunctionPlanPhaseValueInput(InputObjectType):
     phid = NonNull(Int)
@@ -215,6 +216,7 @@ class ProjectJunctionInput(InputObjectType):
     sequence = List(JunctionPhasesSequenceInput)
     plans = List(JunctionPlanInput)
     intergreens = List(JunctionIntergreenValueInput)
+    phases = List(String)    
 
 class ProjectOTUInput(InputObjectType):
     metadata = OTUMetadataInput()

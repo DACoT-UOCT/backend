@@ -1,6 +1,7 @@
 import base64
 import magic
 import dacot_models as dm
+from config import settings
 from graphql_models import *
 
 class ComputeJunctionPlansTables:
@@ -218,7 +219,13 @@ class ProjectInputToProject:
         meta.sales_id = round((int(j.jid[1:]) * 11) / 13.0)
         meta.address_reference = jin.metadata.address_reference
         meta.location = (jin.metadata.coordinates[0], jin.metadata.coordinates[1])
+        if jin.metadata.use_default_vi4:
+            meta.use_default_vi4 = jin.metadata.use_default_vi4
+        else:
+            meta.use_default_vi4 = True
         j.metadata = meta
+        if jin.phases:
+            j.phases = jin.phases
         if jin.sequence:
             seqs = []
             for seq in jin.sequence:
