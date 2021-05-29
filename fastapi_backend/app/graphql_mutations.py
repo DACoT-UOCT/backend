@@ -16,7 +16,7 @@ class CustomMutation(Mutation):
         abstract = True
 
     @classmethod
-    def log_action(cls, msg, is_error=False):
+    def log_action(cls, msg):
         op = str(cls)
         current_user = cls.get_current_user()
         if current_user:
@@ -25,10 +25,7 @@ class CustomMutation(Mutation):
             email = 'None'
         log = dm.ActionsLog(user=email, context=op, action=msg, origin="GraphQL API")
         log.save()
-        if is_error:
-            logger.error(log.to_mongo().to_dict())
-        else:
-            logger.info(log.to_mongo().to_dict())
+        logger.error(log.to_mongo().to_dict())
 
     @classmethod
     def generate_new_project_version(cls, proj):
@@ -47,7 +44,7 @@ class CustomMutation(Mutation):
     @classmethod
     def log_gql_error(cls, message):
         message = 'DACoT_GraphQLError: {}'.format(message)
-        cls.log_action(message, is_error=True)
+        cls.log_action(message)
         return GraphQLError(message)
 
 class DeleteController(CustomMutation):
