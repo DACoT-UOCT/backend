@@ -4,12 +4,11 @@ from graphql_models import *
 from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
-from complex_operations import ProjectInputToProject, ComputeJunctionPlansTables
+from complex_operations import *
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
 class CustomMutation(Mutation):
-    # FIXME: Send emails functions
     # FIXME: Add current user to log
     # FIXME: Make log in background_task
     class Meta:
@@ -508,6 +507,12 @@ class CreateUpdateProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.metadata.status, str(excep)))
         cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.metadata.status))
+        email = EmailSender('CreateUpdateProject', ['example@example.org'], 'helloworld.html', info.context)
+        send_success, error = email.send_with_data({'title': 'AAAAA', 'name': 'BBBBB'})
+        if send_success:
+            cls.log_action('Notifications for project {} sent'.format(parsed.oid))
+        else:
+            cls.log_gql_error('Failed to send notifications for project {}. {}'.format(parsed.oid, error))
         return parsed.id
 
 class ComputeTimingTables(CustomMutation):

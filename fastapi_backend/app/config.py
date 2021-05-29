@@ -1,19 +1,7 @@
 from pydantic import BaseSettings
 from typing import List
 from functools import lru_cache
-
-
-class ConnectionConfig(BaseSettings):
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    MAIL_PORT: int = 587
-    MAIL_FROM: str = 'system-no-reply@dacot.uoct.cl'
-    MAIL_SERVER: str = 'smtp.gmail.com'
-    MAIL_TLS: bool = True
-    MAIL_SSL: bool = False
-    USE_CREDENTIALS: bool = True
-    TEMPLATES_DIR: str = '/app/email_templates/'
-
+from fastapi_mail import ConnectionConfig
 
 class Settings(BaseSettings):
     app_name: str = "DACoT API"
@@ -26,8 +14,18 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-if settings.mail_user:
-    settings.mail_config = ConnectionConfig(MAIL_USERNAME=settings.mail_user, MAIL_PASSWORD=settings.mail_pass)
+if settings.mail_user and settings.mail_pass:
+    settings.mail_config = ConnectionConfig(
+        MAIL_USERNAME=settings.mail_user,
+        MAIL_PASSWORD=settings.mail_pass,
+        MAIL_PORT=587,
+        MAIL_FROM='system-no-reply@dacot.uoct.cl',
+        MAIL_SERVER='smtp.gmail.com',
+        MAIL_TLS=True,
+        MAIL_SSL=False,
+        USE_CREDENTIALS=True,
+        TEMPLATE_FOLDER='/app/email_templates/'
+    )
 
 @lru_cache()
 def get_settings():

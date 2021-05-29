@@ -3,6 +3,27 @@ import magic
 import dacot_models as dm
 from config import settings
 from graphql_models import *
+from fastapi_mail import FastMail, MessageSchema
+
+class EmailSender:
+    def __init__(self, subject, targets, template_name, gqlcontext):
+        self.__subj = subject
+        self.__tgts = targets
+        self.__tname = template_name
+        self.__ctx = gqlcontext
+
+    def __do_send_email(self, data):
+        background = self.__ctx['background']
+        msg = MessageSchema(subject=self.__subj, recipients=self.__tgts, body=data, subtype='html')
+        fm = FastMail(settings.mail_config)
+        background.add_task(fm.send_message, msg, template_name=self.__tname)
+
+    def send_with_data(self, template_data):
+        try:
+            self.__do_send_email(template_data)
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
 
 class ComputeJunctionPlansTables:
     def __init__(self, project):
