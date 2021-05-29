@@ -6,40 +6,28 @@ from functools import lru_cache
 class ConnectionConfig(BaseSettings):
     MAIL_USERNAME: str
     MAIL_PASSWORD: str
-    MAIL_PORT: int = 465
-    MAIL_SERVER: str
-    MAIL_TLS: bool = False
-    MAIL_SSL: bool = True
-    MAIL_DEBUG: int = 1
+    MAIL_PORT: int = 587
+    MAIL_FROM: str = 'system-no-reply@dacot.uoct.cl'
+    MAIL_SERVER: str = 'smtp.gmail.com'
+    MAIL_TLS: bool = True
+    MAIL_SSL: bool = False
+    USE_CREDENTIALS: bool = True
+    TEMPLATES_DIR: str = '/app/email_templates/'
 
 
 class Settings(BaseSettings):
     app_name: str = "DACoT API"
     mongo_uri: str
-    mail_enabled: bool = False
-    mail_server: str = ""
-    mail_port: int = 0
-    mail_pass: str = ""
-    mail_user: str = ""
-    mail_tls: bool = False
-    mail_ssl: bool = False
+    mail_user: str
+    mail_pass: str
     mail_config: ConnectionConfig = None
-    mail_creation_recipients: List[str] = set()
     authjwt_secret_key: str
     apikey_users_file: str = '/app/fake_users.json'
 
 settings = Settings()
 
-if settings.mail_enabled:
-    settings.mail_config = ConnectionConfig(
-        MAIL_USERNAME=settings.mail_user,
-        MAIL_PASSWORD=settings.mail_pass,
-        MAIL_PORT=settings.mail_port,
-        MAIL_SERVER=settings.mail_server,
-        MAIL_TLS=settings.mail_tls,
-        MAIL_SSL=settings.mail_ssl,
-    )
-
+if settings.mail_user:
+    settings.mail_config = ConnectionConfig(MAIL_USERNAME=settings.mail_user, MAIL_PASSWORD=settings.mail_pass)
 
 @lru_cache()
 def get_settings():
