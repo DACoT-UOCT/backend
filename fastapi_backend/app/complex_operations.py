@@ -4,6 +4,7 @@ import dacot_models as dm
 from config import settings
 from graphql_models import *
 from fastapi_mail import FastMail, MessageSchema
+from fastapi.logger import logger
 
 class EmailSender:
     def __init__(self, gqlcontext):
@@ -14,9 +15,10 @@ class EmailSender:
 
     def __get_proj_commune_maintainer(self, project):
         user = project.metadata.commune.user_in_charge
-        print(user)
         if user != None:
             return user.email
+        log_commune_obj = project.metadata.commune.to_mongo().to_dict()
+        logger.warning('EmailSender_WARNING. Missing user_in_charge for commune {}'.format(log_commune_obj))
         return None
 
     def __build_email_targets(self, project):
