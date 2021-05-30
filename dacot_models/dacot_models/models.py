@@ -3,16 +3,7 @@ from datetime import datetime
 from mongoengine import BooleanField
 from mongoengine import Document, PointField, StringField, ListField, DateTimeField
 from mongoengine import EmbeddedDocument, IntField, EmbeddedDocumentListField
-from mongoengine import (
-    EmbeddedDocumentField,
-    EmailField,
-    FileField,
-    ReferenceField,
-)
-
-
-# TODO: Deletion flags (Cascade, DENY, etc)
-
+from mongoengine import EmbeddedDocumentField, EmailField, FileField, ReferenceField, DENY
 
 class JunctionPlanIntergreenValue(EmbeddedDocument):
     phfrom = IntField(min_value=1, required=True)
@@ -128,14 +119,14 @@ class User(Document):
         ],
         required=True,
     )
-    company = ReferenceField(ExternalCompany)
+    company = ReferenceField(ExternalCompany, reverse_delete_rule=DENY)
 
 
 class Commune(Document):
     meta = {"collection": "Commune"}
     code = IntField(min_value=0, required=True, unique=True)
-    maintainer = ReferenceField(ExternalCompany)
-    user_in_charge = ReferenceField(User)
+    maintainer = ReferenceField(ExternalCompany, reverse_delete_rule=DENY)
+    user_in_charge = ReferenceField(User, reverse_delete_rule=DENY)
     name = StringField(unique=True, required=True, min_length=4)
 
 
@@ -170,6 +161,7 @@ class ControllerModel(Document):
         ExternalCompany,
         required=True,
         unique_with=("model", "firmware_version", "checksum"),
+        reverse_delete_rule=DENY
     )
     model = StringField(required=True)
     firmware_version = StringField(required=True, default="Missing Value")
