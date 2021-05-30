@@ -302,7 +302,7 @@ class ProjectInputToProject:
         otu = dm.OTU()
         otu.oid = data.oid
         if otuin.metadata:
-            otu.meta = self.__build_otu_meta(data)
+            otu.metadata = self.__build_otu_meta(data)
         juncs = []
         for j in otuin.junctions:
             juncs.append(self.__build_otu_junction(j))
