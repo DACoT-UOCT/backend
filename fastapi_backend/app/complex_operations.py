@@ -6,21 +6,121 @@ from graphql_models import *
 from fastapi_mail import FastMail, MessageSchema
 
 class EmailSender:
-    def __init__(self, subject, targets, template_name, gqlcontext):
-        self.__subj = subject
-        self.__tgts = targets
-        self.__tname = template_name
+    def __init__(self, gqlcontext):
+        self.__subj = None
+        self.__tgts = None
+        self.__tname = None
         self.__ctx = gqlcontext
 
+    def __get_proj_commune_maintainer(self, project):
+        user = project.metadata.commune.user_in_charge
+        print(user)
+        if user != None:
+            return user.email
+        return None
+
+    def __build_email_targets(self, project):
+        res = [ project.metadata.status_user.email ]
+        comm_maintainer = self.__get_proj_commune_maintainer(project)
+        if comm_maintainer:
+            res = res + [ comm_maintainer ]
+        return res
+
     def __do_send_email(self, data):
+        # TODO: Image??
         background = self.__ctx['background']
         msg = MessageSchema(subject=self.__subj, recipients=self.__tgts, body=data, subtype='html')
         fm = FastMail(settings.mail_config)
         background.add_task(fm.send_message, msg, template_name=self.__tname)
 
-    def send_with_data(self, template_data):
+    def send_update_created(self, project):
         try:
-            self.__do_send_email(template_data)
+            self.__subj = '[DACoT.UOCT] Nueva Actualización {}'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'update_created.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': project.observation
+            })
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
+
+    def send_update_accepted(self, project, message=None, img=None):
+        if not message:
+            message = 'Sin Observaciones'
+        try:
+            self.__subj = '[DACoT.UOCT] Actualización {} ACEPTADA'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'update_accepted.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': message
+            })
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
+
+    def send_update_rejected(self, project, message=None, img=None):
+        if not message:
+            message = 'Sin Observaciones'
+        try:
+            self.__subj = '[DACoT.UOCT] Actualización {} RECHAZADA'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'update_rejected.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': message
+            })
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
+
+    def send_new_created(self, project):
+        try:
+            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {}'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'new_created.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': project.observation
+            })
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
+
+    def send_new_accepted(self, project, message=None, img=None):
+        if not message:
+            message = 'Sin Observaciones'
+        try:
+            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {} ACEPTADO'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'new_accepted.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': message
+            })
+            return True, None
+        except Exception as excep:
+            return False, str(excep)
+
+    def send_new_rejected(self, project, message=None, img=None):
+        if not message:
+            message = 'Sin Observaciones'
+        try:
+            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {} RECHAZADO'.format(project.oid)
+            self.__tgts = self.__build_email_targets(project)
+            self.__tname = 'new_rejected.html'
+            self.__do_send_email({
+                'title': self.__subj,
+                'name': project.metadata.status_user.full_name,
+                'message': message
+            })
             return True, None
         except Exception as excep:
             return False, str(excep)

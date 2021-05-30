@@ -430,7 +430,15 @@ class RejectProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to reject project {} {}. {}'.format(data.oid, data.status, str(excep)))
         cls.log_action('Project {} {} REJECTED'.format(data.oid, data.status))
-        # TODO: Send email with rejection (data.message)
+        email = EmailSender(info.context)
+        if proj.metadata.status == 'UPDATE': 
+            send_success, error = email.send_update_rejected(proj, data.message, data.img)
+        else:
+            send_success, error = email.send_new_rejected(proj, data.message, data.img)
+        if send_success:
+            cls.log_action('Notifications for project {} {} sent'.format(proj.oid, proj.metadata.status))
+        else:
+            cls.log_gql_error('Failed to send notifications for project {} {}. {}'.format(proj.oid, proj.metadata.status, error))
         return data.oid
 
 class AcceptProject(CustomMutation):
@@ -452,7 +460,6 @@ class AcceptProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to accept UPDATE for {}. {}'.format(data.oid, str(excep)))
         cls.log_action('UPDATE for {} ACCEPTED'.format(data.oid))
-        # TODO: Send email with acceptance (data.message)
         return data.oid
 
     @classmethod
@@ -472,10 +479,18 @@ class AcceptProject(CustomMutation):
         proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
         if not proj:
             return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
+        email = EmailSender(info.context)
         if data.status == 'UPDATE':
-            return cls.accept_update(data, proj)
+            op_res = cls.accept_update(data, proj)
+            send_success, error = email.send_update_accepted(proj, data.message, data.img)
         else:
-            return cls.accept_new(data, proj)
+            op_res = cls.accept_new(data, proj)
+            send_success, error = email.send_new_accepted(proj, data.message, data.img)
+        if send_success:
+            cls.log_action('Notifications for project {} {} sent'.format(proj.oid, proj.metadata.status))
+        else:
+            cls.log_gql_error('Failed to send notifications for project {} {}. {}'.format(proj.oid, proj.metadata.status, error))
+        return op_res
 
 class CreateUpdateProject(CustomMutation):
     class Arguments:
@@ -507,12 +522,15 @@ class CreateUpdateProject(CustomMutation):
         except Exception as excep:
             return cls.log_gql_error('Failed to save project {} {}. {}'.format(parsed.oid, parsed.metadata.status, str(excep)))
         cls.log_action('Project {} {} saved'.format(parsed.oid, parsed.metadata.status))
-        email = EmailSender('CreateUpdateProject', ['example@example.org'], 'helloworld.html', info.context)
-        send_success, error = email.send_with_data({'title': 'AAAAA', 'name': 'BBBBB'})
-        if send_success:
-            cls.log_action('Notifications for project {} sent'.format(parsed.oid))
+        email = EmailSender(info.context)
+        if parsed.metadata.status == 'UPDATE': 
+            send_success, error = email.send_update_created(parsed)
         else:
-            cls.log_gql_error('Failed to send notifications for project {}. {}'.format(parsed.oid, error))
+            send_success, error = email.send_new_created(parsed)
+        if send_success:
+            cls.log_action('Notifications for project {} {} sent'.format(parsed.oid, parsed.metadata.status))
+        else:
+            cls.log_gql_error('Failed to send notifications for project {} {}. {}'.format(parsed.oid, parsed.metadata.status, error))
         return parsed.id
 
 class ComputeTimingTables(CustomMutation):
