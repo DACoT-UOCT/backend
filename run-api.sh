@@ -1,1 +1,1 @@
-authjwt_secret_key=$SECRET_TOKEN mail_user=$MAIL_USER mail_pass=$MAIL_PASS mongo_uri="$MONGO_URL" uvicorn --host 0.0.0.0 --proxy-headers --log-level warning --forwarded-allow-ips '*' --port 8081 --root-path /api/v2 app.main:app
+mail_extra_targets=$MAIL_EXTRA_TARGETS authjwt_secret_key=$SECRET_TOKEN mail_user=$MAIL_USER mail_pass=$MAIL_PASS mongo_uri="$MONGO_URL" uvicorn --host 0.0.0.0 --proxy-headers --log-level warning --forwarded-allow-ips '*' --port 8081 --root-path /api/v2 app.main:app

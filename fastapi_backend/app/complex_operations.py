@@ -26,6 +26,8 @@ class EmailSender:
         comm_maintainer = self.__get_proj_commune_maintainer(project)
         if comm_maintainer:
             res = res + [ comm_maintainer ]
+        if len(settings.mail_extra_targets) >= 1:
+            res = res + settings.mail_extra_targets
         return res
 
     def __do_send_email(self, data):
@@ -43,7 +45,7 @@ class EmailSender:
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': project.observation
+                'message': project.observation.message
             })
             return True, None
         except Exception as excep:
@@ -89,7 +91,7 @@ class EmailSender:
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': project.observation
+                'message': project.observation.message
             })
             return True, None
         except Exception as excep:
