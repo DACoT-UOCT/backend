@@ -221,7 +221,7 @@ class ProjectJunctionInput(InputObjectType):
 class ProjectOTUInput(InputObjectType):
     metadata = OTUMetadataInput()
     junctions = NonNull(List(NonNull(ProjectJunctionInput)))
-    program = List(OTUProgramInput)
+    programs = List(OTUProgramInput)
 
 class CreateProjectInput(InputObjectType):
     oid = NonNull(String)
