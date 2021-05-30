@@ -5,6 +5,7 @@ from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
 from complex_operations import *
+from datetime import datetime
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
