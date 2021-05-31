@@ -413,9 +413,9 @@ class ProjectInputToProject:
         for j in otuin.junctions:
             juncs.append(self.__build_otu_junction(j))
         otu.junctions = juncs
-        if otuin.program:
+        if otuin.programs:
             progs = []
-            for p in otuin.program:
+            for p in otuin.programs:
                 progs.append(self.__build_otu_program(p))
             otu.programs = progs
         return otu
@@ -494,5 +494,5 @@ class ProjectInputToProject:
         try:
             return True, self.__build_project(data)
         except Exception as excep:
-            traceback.print_last()
+            traceback.print_exc()
             return False, str(excep)
