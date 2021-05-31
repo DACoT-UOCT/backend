@@ -5,6 +5,7 @@ from config import settings
 from graphql_models import *
 from fastapi_mail import FastMail, MessageSchema
 from fastapi.logger import logger
+import traceback
 
 class EmailSender:
     def __init__(self, gqlcontext):
@@ -273,7 +274,8 @@ class ProjectInputToProject:
             return False
 
     def __get_b64file_data(self, base64data):
-        _, base64data = base64data.split(",")
+        if ',' in base64data:
+            _, base64data = base64data.split(",")
         if not self.__is_valid_base64(base64data):
             raise ValueError('Invalid base64 data')
         b64bytes = base64.b64decode(base64data)
@@ -492,4 +494,5 @@ class ProjectInputToProject:
         try:
             return True, self.__build_project(data)
         except Exception as excep:
+            traceback.print_last()
             return False, str(excep)
