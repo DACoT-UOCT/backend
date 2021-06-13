@@ -6,6 +6,8 @@ from graphql import GraphQLError
 from copy import deepcopy
 from complex_operations import *
 from datetime import datetime
+import sys
+import traceback
 
 DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
@@ -29,12 +31,11 @@ class CustomMutation(Mutation):
 
     @classmethod
     def generate_new_project_version(cls, proj):
-        base = proj
-        new = deepcopy(base)
+        new = deepcopy(proj)
         new.id = None
-        base.metadata.version = datetime.now().isoformat()
+        proj.metadata.version = datetime.now().isoformat()
         new.metadata.version = 'latest'
-        return base, new
+        return proj, new
 
     @classmethod
     def get_current_user(cls):
@@ -43,6 +44,8 @@ class CustomMutation(Mutation):
 
     @classmethod
     def log_gql_error(cls, message):
+        if sys.exc_info[2]:
+            traceback.print_tb(sys.exc_info[2])
         message = 'DACoT_GraphQLError: {}'.format(message)
         cls.log_action(message)
         return GraphQLError(message)
