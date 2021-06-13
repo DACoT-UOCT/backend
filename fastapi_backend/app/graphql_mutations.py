@@ -264,7 +264,7 @@ class DeleteUser(CustomMutation):
 
     @classmethod
     def mutate(cls, root, info, data):
-        user = UserModel.objects(email=data.email).first()
+        user = dm.User.objects(email=data.email).first()
         if not user:
             return cls.log_gql_error('User {} not found.'.format(data.email))
         try:
@@ -282,7 +282,7 @@ class UpdateUser(CustomMutation):
 
     @classmethod
     def mutate(cls, root, info, data):
-        user = UserModel.objects(email=data.email).first()
+        user = dm.User.objects(email=data.email).first()
         if not user:
             return cls.log_gql_error('User {} not found'.format(data.email))
         if data.is_admin:
