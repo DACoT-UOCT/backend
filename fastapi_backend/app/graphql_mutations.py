@@ -62,6 +62,12 @@ class DeleteController(CustomMutation):
         ctrl = dm.ControllerModel.objects(id=cid).first()
         if not ctrl:
             return cls.log_gql_error('Failed to delete controller. Controller Id {} not found'.format(cid))
+        if ctrl.model == 'DEFAULT' and ctrl.company.name == 'SPEEDEVS':
+            return cls.log_gql_error('Failed to delete controller. Cannot delete DEFAULT controller')
+        using = dm.Project.objects(controller__model=ctrl).only('oid')
+        if len(using) > 0:
+            using_oid = [p.oid for p in using]
+            return cls.log_gql_error('Failed to delete controller. Controller is in used by: {}'.format(using_oid))
         try:
             ctrl.delete()
         except Exception as exp:
