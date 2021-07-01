@@ -44,8 +44,9 @@ class CustomMutation(Mutation):
 
     @classmethod
     def log_gql_error(cls, message):
-        if sys.exc_info[2]:
-            traceback.print_tb(sys.exc_info[2])
+        exc = sys.exc_info()
+        if exc[2]:
+            traceback.print_tb(exc[2])
         message = 'DACoT_GraphQLError: {}'.format(message)
         cls.log_action(message)
         return GraphQLError(message)
