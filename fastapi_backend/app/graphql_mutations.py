@@ -31,7 +31,7 @@ class CustomMutation(Mutation):
 
     @classmethod
     def generate_new_project_version(cls, proj):
-        new = deepcopy(proj)
+        new = dm.Project.objects(id=proj.id).first()
         new.id = None
         proj.metadata.version = datetime.now().isoformat()
         new.metadata.version = 'latest'
