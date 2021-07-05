@@ -32,6 +32,8 @@ class EmailSender:
         return res
 
     def __do_send_email(self, data):
+        if not settings.mail_enabled:
+            return
         # TODO: Image??
         background = self.__ctx['background']
         msg = MessageSchema(subject=self.__subj, recipients=self.__tgts, body=data, subtype='html')

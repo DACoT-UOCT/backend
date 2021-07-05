@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     mail_user: str
     mail_pass: str
     mail_config: ConnectionConfig = None
+    mail_enabled: bool = False
     mail_extra_targets: List[str] = list()
     authjwt_secret_key: str
     apikey_users_file: str = '/app/fake_users.json'
@@ -27,6 +28,7 @@ if settings.mail_user and settings.mail_pass:
         USE_CREDENTIALS=True,
         TEMPLATE_FOLDER='/app/email_templates/'
     )
+    settings.mail_enabled = False
 
 @lru_cache()
 def get_settings():
