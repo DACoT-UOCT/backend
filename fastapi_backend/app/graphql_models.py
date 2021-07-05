@@ -200,15 +200,21 @@ class JunctionPlanPhaseValueInput(InputObjectType):
     phid = NonNull(Int)
     value = NonNull(Int)
 
-class JunctionPlanInput(InputObjectType):
-    plid = NonNull(Int)
-    cycle = NonNull(Int)
-    system_start = NonNull(List(NonNull(JunctionPlanPhaseValueInput)))
-
 class JunctionIntergreenValueInput(InputObjectType):
     phfrom = NonNull(String)
     phto = NonNull(String)
     value = NonNull(String)
+
+class JunctionPlanInput(InputObjectType):
+    plid = NonNull(Int)
+    cycle = NonNull(Int)
+    system_start = NonNull(List(NonNull(JunctionPlanPhaseValueInput)))
+    green_start = List(NonNull(JunctionPlanPhaseValueInput))
+    phase_start = List(NonNull(JunctionPlanPhaseValueInput))
+    vehicle_green = List(NonNull(JunctionPlanPhaseValueInput))
+    pedestrian_green = List(NonNull(JunctionPlanPhaseValueInput))
+    pedestrian_intergreen = List(NonNull(JunctionIntergreenValueInput))
+    vehicle_intergreen = List(NonNull(JunctionIntergreenValueInput))
 
 class ProjectJunctionInput(InputObjectType):
     jid = NonNull(String)

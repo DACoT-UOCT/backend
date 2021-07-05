@@ -559,7 +559,7 @@ class ComputeTimingTables(CustomMutation):
             return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
         base, proj = cls.generate_new_project_version(proj)
         try:
-            compute = ComputeProjectPlansTables(proj)
+            compute = ComputeJunctionPlansTables(proj)
             proj = compute.run()
         except Exception as excep:
             return cls.log_gql_error('Failed to compute tables for {}. {}'.format(data.oid, str(excep)))

@@ -378,6 +378,56 @@ class ProjectInputToProject:
                     s.value = st.value
                     starts.append(s)
                 p.system_start = starts
+                if pl.green_start:
+                    green_start = []
+                    for st in pl.green_start:
+                        s = dm.JunctionPlanPhaseValue()
+                        s.phid = st.phid
+                        s.value = st.value
+                        green_start.append(s)
+                    p.green_start = green_start
+                if pl.phase_start:
+                    phase_start = []
+                    for st in pl.phase_start:
+                        s = dm.JunctionPlanPhaseValue()
+                        s.phid = st.phid
+                        s.value = st.value
+                        phase_start.append(s)
+                    p.phase_start = phase_start
+                if pl.vehicle_green:
+                    vehicle_green = []
+                    for st in pl.vehicle_green:
+                        s = dm.JunctionPlanPhaseValue()
+                        s.phid = st.phid
+                        s.value = st.value
+                        vehicle_green.append(s)
+                    p.vehicle_green = vehicle_green
+                if pl.pedestrian_green:
+                    pedestrian_green = []
+                    for st in pl.pedestrian_green:
+                        s = dm.JunctionPlanPhaseValue()
+                        s.phid = st.phid
+                        s.value = st.value
+                        pedestrian_green.append(s)
+                    p.pedestrian_green = pedestrian_green
+                if pl.pedestrian_intergreen:
+                    pedestrian_intergreen = []
+                    for inter in pl.pedestrian_intergreen:
+                        i = dm.JunctionPlanIntergreenValue()
+                        i.phfrom = inter.phfrom
+                        i.phto = inter.phto
+                        i.value = inter.value
+                        pedestrian_intergreen.append(i)
+                    p.pedestrian_intergreen = pedestrian_intergreen
+                if pl.vehicle_intergreen:
+                    vehicle_intergreen = []
+                    for inter in pl.vehicle_intergreen:
+                        i = dm.JunctionPlanIntergreenValue()
+                        i.phfrom = inter.phfrom
+                        i.phto = inter.phto
+                        i.value = inter.value
+                        vehicle_intergreen.append(i)
+                    p.vehicle_intergreen = vehicle_intergreen
                 plans.append(p)
             j.plans = plans
         if jin.intergreens:
