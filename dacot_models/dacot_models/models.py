@@ -19,7 +19,7 @@ class JunctionIntergreenValue(EmbeddedDocument):
 
 class JunctionPlanPhaseValue(EmbeddedDocument):
     phid = IntField(min_value=1, required=True)
-    value = IntField(min_value=0, required=True)
+    value = IntField(required=True)
 
 
 class JunctionPlan(EmbeddedDocument):
