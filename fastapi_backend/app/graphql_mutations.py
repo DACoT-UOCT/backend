@@ -67,7 +67,7 @@ class DeleteController(CustomMutation):
         using = dm.Project.objects(controller__model=ctrl).only('oid')
         if len(using) > 0:
             using_oid = [p.oid for p in using]
-            return cls.log_gql_error('Failed to delete controller. Controller is in used by: {}'.format(using_oid))
+            return cls.log_gql_error('Failed to delete controller. Controller is in use by: {}'.format(using_oid))
         try:
             ctrl.delete()
         except Exception as exp:
@@ -277,6 +277,12 @@ class DeleteUser(CustomMutation):
         user = dm.User.objects(email=data.email).first()
         if not user:
             return cls.log_gql_error('User {} not found.'.format(data.email))
+        if user.email == 'seed@dacot.uoct.cl':
+            return cls.log_gql_error('Failed to delete user {}. Cannot delete SEED system user.'.format(data.email))
+        commune_using = dm.Commune.objects(user_in_charge=user).only('code')
+        if len(commune_using) > 0:
+            using_code = [c.code for c in commune_using]
+            return cls.log_gql_error('Failed to delete User. User is in use by communes: {}'.format(using_code))
         try:
             user.delete()
         except Exception as excep:
@@ -362,9 +368,13 @@ class SetDefaultVehicleIntergreen(CustomMutation):
     @classmethod
     def update_model_custom(cls, data, base, proj, junc):
         input_inters = {}
+        numbers_str = list(map(str, range(0,10)))
         for phase in data.phases:
-            k = (phase['phfrom'], phase['phto'])
-            input_inters[k] = phase['value']
+            k = [phase['phfrom'], phase['phto']]
+            if k[0] in numbers_str and k[1] in numbers_str:
+                k[0] = chr(int(k[0]) + 64)
+                k[1] = chr(int(k[1]) + 64)
+            input_inters[tuple(k)] = phase['value']
         inpl = len(input_inters)
         needed = len(junc.intergreens)
         if inpl != needed:

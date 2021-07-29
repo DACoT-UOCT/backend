@@ -26,7 +26,7 @@ class Mutation(ObjectType):
     create_company = CreateCompany.Field()
     # User
     create_user = CreateUser.Field()
-    delete_user = DeleteUser.Field()
+    # delete_user = DeleteUser.Field() # TODO Make this 'disable_user'
     update_user = UpdateUser.Field()
     # Vehicle Intergreens
     set_default_veh_intergreen = SetDefaultVehicleIntergreen.Field()
