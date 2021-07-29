@@ -445,6 +445,7 @@ class RejectProject(CustomMutation):
             return cls.log_gql_error('Project {} in status {} not found'.format(data.oid, data.status))
         base, proj = cls.generate_new_project_version(proj)
         proj.metadata.status = 'REJECTED'
+        proj.metadata.version = datetime.now().isoformat()
         try:
             base.save()
             proj.save()
