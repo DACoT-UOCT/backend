@@ -218,7 +218,8 @@ class DeleteCompany(CustomMutation):
         if not comp:
             return cls.log_gql_error('Company {} not found'.format(data.name))
         try:
-            company.delete()
+            comp.disabled = True
+            comp.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to delete company {}. {}'.format(data.name, str(excep)))
         cls.log_action('Company {} deleted'.format(data.name))
