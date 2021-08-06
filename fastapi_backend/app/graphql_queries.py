@@ -24,7 +24,7 @@ class Query(ObjectType):
     check_otu_exists = Boolean(oid=NonNull(String))
 
     def resolve_users(self, info):
-        return dm.User.objects.all()
+        return dm.User.objects(disabled=False).all()
 
     def resolve_user(self, info, email):
         return dm.User.objects(email=email).first()
@@ -36,13 +36,13 @@ class Query(ObjectType):
         return dm.Commune.objects.all()
 
     def resolve_companies(self, info):
-        return dm.ExternalCompany.objects.all()
+        return dm.ExternalCompany.objects(disabled=False).all()
 
     def resolve_failed_plan(self, info, mid):
         return dm.PlanParseFailedMessage.objects(id=mid).first()
 
     def resolve_controllers(self, info):
-        return dm.ControllerModel.objects.all()
+        return dm.ControllerModel.objects(disabled=False).all()
 
     def resolve_junction(self, info, jid, status):
         proj = ProjectModel.objects(metadata__status=status, otu__junctions__jid=jid).only('otu.junctions').first()
