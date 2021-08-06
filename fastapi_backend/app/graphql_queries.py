@@ -53,7 +53,7 @@ class Query(ObjectType):
         return None
 
     def resolve_locations(self, info, status):
-        projs = dm.Project.objects(metadata__status=status).no_dereference().only('otu.junctions.jid', 'otu.junctions.metadata.location')
+        projs = dm.Project.objects(metadata__status=status, metadata__version='latest').no_dereference().only('otu.junctions.jid', 'otu.junctions.metadata.location')
         res = []
         for proj in projs:
             for junc in proj.otu.junctions:
