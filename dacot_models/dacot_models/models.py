@@ -59,6 +59,7 @@ class Junction(EmbeddedDocument):
 
 class ExternalCompany(Document):
     meta = {"collection": "ExternalCompany"}
+    disabled = BooleanField(default=False)
     name = StringField(min_length=2, required=True, unique=True)
 
 
@@ -104,6 +105,7 @@ class Poles(EmbeddedDocument):
 
 class User(Document):
     meta = {"collection": "User"}
+    disabled = BooleanField(default=False)
     is_admin = BooleanField(default=False)
     full_name = StringField(min_length=5, required=True)
     email = EmailField(required=True, unique=True)
@@ -164,6 +166,7 @@ class ControllerModel(Document):
         reverse_delete_rule=DENY
     )
     model = StringField(required=True)
+    disabled = BooleanField(default=False)
     firmware_version = StringField(required=True, default="Missing Value")
     checksum = StringField(required=True, default="Missing Value")
     date = DateTimeField(default=datetime.utcnow)
