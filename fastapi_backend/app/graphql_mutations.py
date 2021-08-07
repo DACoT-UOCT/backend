@@ -69,7 +69,8 @@ class DeleteController(CustomMutation):
             using_oid = [p.oid for p in using]
             return cls.log_gql_error('Failed to delete controller. Controller is in use by: {}'.format(using_oid))
         try:
-            ctrl.delete()
+            ctrl.disabled = True
+            ctrl.save()
         except Exception as exp:
             return cls.log_gql_error('Failed to delete controller. Cause: {}'.format(str(exp)))
         return cid
@@ -285,7 +286,8 @@ class DeleteUser(CustomMutation):
             using_code = [c.code for c in commune_using]
             return cls.log_gql_error('Failed to delete User. User is in use by communes: {}'.format(using_code))
         try:
-            user.delete()
+            user.disabled = True
+            user.save()
         except Exception as excep:
             return cls.log_gql_error('Failed to delete user {}. {}'.format(data.email, str(excep)))
         cls.log_action('User {} deleted.'.format(data.email))
