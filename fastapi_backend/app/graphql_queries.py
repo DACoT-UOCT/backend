@@ -23,6 +23,9 @@ class Query(ObjectType):
     login_api_key = String(key=NonNull(String), secret=NonNull(String))
     check_otu_exists = Boolean(oid=NonNull(String))
 
+    def resolve_action_logs(self, info, **args):
+        return Query.action_logs.resolve_connection(Query.action_logs.type, args, dm.ActionsLog.objects().all())
+
     def resolve_users(self, info):
         return dm.User.objects(disabled__ne=True).all()
 
