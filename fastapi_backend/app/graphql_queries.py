@@ -8,7 +8,7 @@ class Query(ObjectType):
     users = List(User)
     user = Field(User, email=NonNull(String))
     action_log = Field(ActionsLog, logid=NonNull(String))
-    action_logs = MCF(ActionsLog)
+    action_logs = MCF(ActionsLog, start_date=NonNull(DateTime))
     communes = List(Commune)
     companies = List(ExternalCompany)
     failed_plans = MCF(PlanParseFailedMessage)
@@ -24,7 +24,9 @@ class Query(ObjectType):
     check_otu_exists = Boolean(oid=NonNull(String))
 
     def resolve_action_logs(self, info, **args):
-        return Query.action_logs.resolve_connection(Query.action_logs.type, args, dm.ActionsLog.objects().all())
+        raw_query = {'date': {'$gte': args['start_date']}}
+        temp = dm.ActionsLog.objects(__raw__=raw_query).all()
+        return Query.action_logs.resolve_connection(Query.action_logs.type, args, temp)
 
     def resolve_users(self, info):
         return dm.User.objects(disabled__ne=True).all()
