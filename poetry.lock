@@ -759,7 +759,7 @@ python-versions = "*"
 
 [[package]]
 name = "sendgrid"
-version = "6.7.0"
+version = "6.7.1"
 description = "Twilio SendGrid library for Python"
 category = "main"
 optional = false
@@ -933,7 +933,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d14fca8343f5de627f9f98ef0349cb8ab62082fe254fad632c693023fc6ceb8d"
+content-hash = "3aec3461fa7d2e8e915636c7938d1f29494e082c02f006ef451c4385673ed0f8"
 
 [metadata.files]
 aiohttp = [
@@ -1535,8 +1535,8 @@ rx = [
     {file = "Rx-1.6.1.tar.gz", hash = "sha256:13a1d8d9e252625c173dc795471e614eadfe1cf40ffc684e08b8fff0d9748c23"},
 ]
 sendgrid = [
-    {file = "sendgrid-6.7.0-py3-none-any.whl", hash = "sha256:273bdc0abec649bf6319df7b6267980f79e53ab64e92906d65eea6d4330d00b4"},
-    {file = "sendgrid-6.7.0.tar.gz", hash = "sha256:74b0dcf9a79188948f61f456bd1bf67ffa676a5d388aba1c76bff516566d7084"},
+    {file = "sendgrid-6.7.1-py3-none-any.whl", hash = "sha256:2558a8b2cf12677ceb99f8b611d914af5b9a2fd7ff3c0578e8299b4224e10071"},
+    {file = "sendgrid-6.7.1.tar.gz", hash = "sha256:1c1cca97ab968f81af43ddbbe44aade5a689da27e3e4975dc366042499620abe"},
 ]
 sentinels = [
     {file = "sentinels-1.0.0.tar.gz", hash = "sha256:7be0704d7fe1925e397e92d18669ace2f619c92b5d4eb21a89f31e026f9ff4b1"},
