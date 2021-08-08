@@ -521,7 +521,7 @@ pymongo = ">=3.4,<4.0"
 
 [[package]]
 name = "mongomock"
-version = "3.22.1"
+version = "3.23.0"
 description = "Fake pymongo stub for testing simple MongoDB-dependent code"
 category = "main"
 optional = false
@@ -933,7 +933,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d14fca8343f5de627f9f98ef0349cb8ab62082fe254fad632c693023fc6ceb8d"
+content-hash = "491345ffbb27a0b6eab38670abcf0fdc81775abbf7f26aef74a65186c72b1388"
 
 [metadata.files]
 aiohttp = [
@@ -1288,8 +1288,8 @@ mongoengine = [
     {file = "mongoengine-0.23.0.tar.gz", hash = "sha256:4b5a4aa317a138f09df956deaac1d62c1618af24a27c1826a6893709007d9047"},
 ]
 mongomock = [
-    {file = "mongomock-3.22.1-py2.py3-none-any.whl", hash = "sha256:c721a7b8ce3ae44442de3cf314a89f4be3fe65bd337d8e7d0d909d8af0d1584e"},
-    {file = "mongomock-3.22.1.tar.gz", hash = "sha256:70d6d0d5e4c4e225eb46a109c527c2388e54f684b6d32bdb4718c0618ecec168"},
+    {file = "mongomock-3.23.0-py2.py3-none-any.whl", hash = "sha256:01ce0c4eb02b2eced0a30882412444eaf6de27a90f2502bee64e04e3b8ecdc90"},
+    {file = "mongomock-3.23.0.tar.gz", hash = "sha256:d9945e7c87c221aed47c6c10708376351a5f5ee48060943c56ba195be425b0dd"},
 ]
 multidict = [
     {file = "multidict-5.1.0-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:b7993704f1a4b204e71debe6095150d43b2ee6150fa4f44d6d966ec356a8d61f"},
