@@ -5,15 +5,15 @@ from fastapi.logger import logger
 from graphene_mongo import MongoengineConnectionField as MCF
 
 class Query(ObjectType):
-    users = List(User)
+    users = List(User, show_disabled=Boolean())
     user = Field(User, email=NonNull(String))
     action_log = Field(ActionsLog, logid=NonNull(String))
     action_logs = MCF(ActionsLog, start_date=NonNull(DateTime), end_date=NonNull(DateTime))
     communes = List(Commune)
-    companies = List(ExternalCompany)
+    companies = List(ExternalCompany, show_disabled=Boolean())
     failed_plans = MCF(PlanParseFailedMessage)
     failed_plan = Field(PlanParseFailedMessage, mid=NonNull(String))
-    controllers = List(ControllerModel)
+    controllers = List(ControllerModel, show_disabled=Boolean())
     junction = Field(Junction, jid=NonNull(String), status=NonNull(String))
     projects = MCF(Project, metadata__status=NonNull(String), metadata__version=NonNull(String), first=RangeScalar(required=True))
     locations = List(JunctionLocationItem, status=NonNull(String))
@@ -28,7 +28,9 @@ class Query(ObjectType):
         temp = dm.ActionsLog.objects(__raw__=raw_query).all()
         return Query.action_logs.resolve_connection(Query.action_logs.type, args, temp)
 
-    def resolve_users(self, info):
+    def resolve_users(self, info, show_disabled=False):
+        if show_disabled:
+            return dm.User.objects.all()
         return dm.User.objects(disabled__ne=True).all()
 
     def resolve_user(self, info, email):
@@ -40,13 +42,17 @@ class Query(ObjectType):
     def resolve_communes(self, info):
         return dm.Commune.objects.all()
 
-    def resolve_companies(self, info):
+    def resolve_companies(self, info, show_disabled=False):
+        if show_disabled:
+            return dm.ExternalCompany.objects.all()
         return dm.ExternalCompany.objects(disabled__ne=True).all()
 
     def resolve_failed_plan(self, info, mid):
         return dm.PlanParseFailedMessage.objects(id=mid).first()
 
-    def resolve_controllers(self, info):
+    def resolve_controllers(self, info, show_disabled=False):
+        if show_disabled:
+            return dm.ControllerModel.objects.all()
         return dm.ControllerModel.objects(disabled__ne=True).all()
 
     def resolve_junction(self, info, jid, status):
