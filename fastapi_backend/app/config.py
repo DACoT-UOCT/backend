@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     mail_config: ConnectionConfig = None
     mail_enabled: bool = False
     mail_extra_targets: List[str] = list()
-    authjwt_secret_key: str
+    #authjwt_secret_key: str
     apikey_users_file: str = '/app/fake_users.json'
 
 settings = Settings()

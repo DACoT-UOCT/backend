@@ -24,6 +24,7 @@ gql-query-builder = "^0.1.5"
 loguru = "^0.5.3"
 sendgrid = "^6.7.0"
 Authlib = "^0.15.4"
+itsdangerous = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 

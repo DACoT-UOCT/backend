@@ -1,8 +1,12 @@
+import json
 from fastapi import FastAPI, Request, Depends
 from fastapi.logger import logger
-from fastapi_jwt_auth import AuthJWT
 from mongoengine import connect
 from starlette.datastructures import URL
+from starlette.config import Config
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import HTMLResponse, RedirectResponse
+from authlib.integrations.starlette_client import OAuth, OAuthError
 
 from .config import get_settings
 from .custom_graphql_app import CustomGraphQLApp
@@ -24,11 +28,6 @@ Técnica Federico Santa María.
 app = FastAPI(title="DACoT API", version="v0.2", description=api_description)
 
 
-@AuthJWT.load_config
-def get_config():
-    return get_settings()
-
-
 graphql_app = CustomGraphQLApp(schema=dacot_schema)
 
 
@@ -39,15 +38,60 @@ async def graphiql(request: Request):
 
 
 @app.post("/")
-async def graphql(request: Request, authorize: AuthJWT = Depends()):
-    request.state.authorize = authorize
+async def graphql(request: Request):
     return await graphql_app.handle_graphql(request=request)
 
 
 @app.post("/graphql")
-async def graphql(request: Request, authorize: AuthJWT = Depends()):
-    request.state.authorize = authorize
+async def graphql(request: Request):
     return await graphql_app.handle_graphql(request=request)
 
 
 logger.warning("App Ready")
+
+app.add_middleware(SessionMiddleware, secret_key="!secret")
+
+gconfig = Config('.env')
+oauth = OAuth(gconfig)
+
+oauth.register(name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
+
+@app.get('/home')
+async def homepage(request: Request):
+    user = request.session.get('user')
+    print(user)
+    if user:
+        data = json.dumps(user)
+        html = f'<pre>{data}</pre><a href="/logout">logout</a>'
+        return HTMLResponse(html)
+    return HTMLResponse('<a href="/login">login</a>')
+
+@app.get('/login')
+async def login(request: Request):
+    # redirect_uri = request.url_for('auth')
+    redirect_uri = 'http://localhost:8081/auth'
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@app.get('/auth')
+async def auth(request: Request):
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError as error:
+        return HTMLResponse(f'<h1>{error.error}</h1>')
+    user = await oauth.google.parse_id_token(request, token)
+    request.session['user'] = dict(user)
+    return RedirectResponse(url='/home')
+
+
+@app.get('/logout')
+async def logout(request: Request):
+    request.session.pop('user', None)
+    return RedirectResponse(url='/home')
+
+logger.warning("Security Ready")

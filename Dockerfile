@@ -15,4 +15,5 @@ WORKDIR /
 COPY graphene_arguments.patch /graphene_patch.patch
 RUN cd /root/.cache/pypoetry/virtualenvs/*/lib/python3.8/site-packages/graphene && patch -p0 --verbose --ignore-whitespace --fuzz 3 < /graphene_patch.patch
 ENTRYPOINT /usr/local/bin/poetry run /bin/bash /run-api.sh
+COPY .env /.env
 COPY fastapi_backend/app /app
