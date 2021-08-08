@@ -7,7 +7,7 @@ authors = ["dacot@uoct.cl"]
 [tool.poetry.dependencies]
 python = "^3.8"
 fastapi = "^0.63.0"
-mongoengine = "^0.23.0"
+mongoengine = "^0.23.1"
 fastapi-mail = "^0.3.7"
 python-magic = "^0.4.22"
 requests = "^2.25.1"
