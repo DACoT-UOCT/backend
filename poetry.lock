@@ -245,7 +245,7 @@ test = ["pytest (==6.0.1)", "pytest-cov (==2.10.0)", "coveralls (==2.1.2)"]
 
 [[package]]
 name = "fastapi-mail"
-version = "0.3.7"
+version = "0.4.1"
 description = "Simple lightwigh mail sending for FastApi"
 category = "main"
 optional = false
@@ -933,7 +933,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d14fca8343f5de627f9f98ef0349cb8ab62082fe254fad632c693023fc6ceb8d"
+content-hash = "7febde1d684aa91669ddb1fa71e4fc4dfcdff3962f632e951931b3f80e8d5194"
 
 [metadata.files]
 aiohttp = [
@@ -1104,8 +1104,8 @@ fastapi-jwt-auth = [
     {file = "fastapi_jwt_auth-0.5.0-py3-none-any.whl", hash = "sha256:43110a227e36f93b99257a1c79e66df8ed3d4c893291db8f9db2686192011f17"},
 ]
 fastapi-mail = [
-    {file = "fastapi-mail-0.3.7.tar.gz", hash = "sha256:639d18b9ca8477bab4a8c20fdf2d01672a12761cb2d08dac4a87154cd581e9f6"},
-    {file = "fastapi_mail-0.3.7-py3-none-any.whl", hash = "sha256:979eda1f518f2524d6a9ddd4b32b6c4690b56310de89034e7e4832f36a3d4acd"},
+    {file = "fastapi-mail-0.4.1.tar.gz", hash = "sha256:9b774b64672fb47a6ceb67e45db5bd031694f8b19d15db8597d1c390122e3031"},
+    {file = "fastapi_mail-0.4.1-py3-none-any.whl", hash = "sha256:46ea8d622bf0a1fe7563249706f6600017a28a43a22809ba96e7129b1e0fc31d"},
 ]
 google-auth = [
     {file = "google-auth-1.30.0.tar.gz", hash = "sha256:9ad25fba07f46a628ad4d0ca09f38dcb262830df2ac95b217f9b0129c9e42206"},
