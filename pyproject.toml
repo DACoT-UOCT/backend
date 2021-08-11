@@ -22,7 +22,7 @@ aiohttp = "^3.7.4"
 gql = "^2.0.0"
 gql-query-builder = "^0.1.5"
 loguru = "^0.5.3"
-sendgrid = "^6.7.0"
+sendgrid = "^6.8.0"
 Authlib = "^0.15.4"
 itsdangerous = "^2.0.1"
 
