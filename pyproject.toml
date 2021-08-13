@@ -17,7 +17,7 @@ google-auth = "^1.30.0"
 pymongo = "^3.11.3"
 graphene-mongo = "^0.2.13"
 fastapi-jwt-auth = "^0.5.0"
-uvicorn = {extras = ["standard"], version = "^0.13.4"}
+uvicorn = {extras = ["standard"], version = "^0.15.0"}
 aiohttp = "^3.7.4"
 gql = "^2.0.0"
 gql-query-builder = "^0.1.5"
