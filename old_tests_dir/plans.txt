@@ -1,5 +1,0 @@
-Mo 09:54:04 22-JUN-20 Current plan Timings
-      Plan   1 J001111 PROVIDENCIA-MIGUEL.CLARO________ CY096 B 42, A 67
-      Plan   1 J001121 M.MONTT-PROVIDE CY104 C 30, A 46, B 97
-      Plan   3 J175551 Consisto-Grecia CY100 D 9, AD 10, ABD 11, A 41, AB 42, B 64, C 95, BC 96
-      Plan   3 J175561 ElAmanec-Grecia CY100 C 7, A 36, AB 37, AB! 38, B 60
