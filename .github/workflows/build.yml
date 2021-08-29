@@ -15,7 +15,7 @@ jobs:
           python-version: "3.x"
       - name: Install dependencies
         run: |
-          apt install -y patch
+          sudo apt install -y patch
           python -m pip install --upgrade poetry wheel
           poetry install
           poetry env info
