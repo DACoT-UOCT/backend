@@ -293,6 +293,25 @@ class DeleteUser(CustomMutation):
         cls.log_action('User {} deleted.'.format(data.email))
         return data.email
 
+class EnableUser(CustomMutation):
+    class Arguments:
+        data = DeleteUserInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        user = dm.User.objects(email=data.email).first()
+        if not user:
+            return cls.log_gql_error('User {} not found.'.format(data.email))
+        try:
+            user.disabled = False
+            user.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to enable user {}. {}'.format(data.email, str(excep)))
+        cls.log_action('User {} enabled.'.format(data.email))
+        return data.email
+
 class UpdateUser(CustomMutation):
     class Arguments:
         data = UpdateUserInput()

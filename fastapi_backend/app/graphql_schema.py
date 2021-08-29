@@ -28,6 +28,7 @@ class Mutation(ObjectType):
     create_user = CreateUser.Field()
     delete_user = DeleteUser.Field()
     update_user = UpdateUser.Field()
+    enable_user = EnableUser.Field()
     # Vehicle Intergreens
     set_default_veh_intergreen = SetDefaultVehicleIntergreen.Field()
     set_veh_intergreen = SetIntergreen.Field()
