@@ -15,11 +15,12 @@ jobs:
           python-version: "3.x"
       - name: Install dependencies
         run: |
+          echo $(pwd)
           sudo apt install -y patch
           python -m pip install --upgrade poetry wheel
           poetry install
           poetry env info
-          cd /home/runner/.cache/pypoetry/virtualenvs/*/lib/python3.9/site-packages/graphene && patch -p0 --verbose --ignore-whitespace --fuzz 3 < /graphene_patch.patch
+          cd /home/runner/.cache/pypoetry/virtualenvs/*/lib/python3.9/site-packages/graphene && patch -p0 --verbose --ignore-whitespace --fuzz 3 < /home/runner/work/graphene_patch.patch
       - name: Run coverage tool
         run: |
           poetry run coverage run -m pytest -v tests/
