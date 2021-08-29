@@ -1,8 +1,8 @@
 import base64
 import magic
 import dacot_models as dm
-from config import settings
-from graphql_models import *
+from .config import settings
+from .graphql_models import *
 from fastapi_mail import FastMail, MessageSchema
 from fastapi.logger import logger
 import traceback

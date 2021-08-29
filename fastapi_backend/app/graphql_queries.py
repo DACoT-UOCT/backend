@@ -1,6 +1,6 @@
 import dacot_models as dm
 from graphene import *
-from graphql_models import *
+from .graphql_models import *
 from fastapi.logger import logger
 from graphene_mongo import MongoengineConnectionField as MCF
 

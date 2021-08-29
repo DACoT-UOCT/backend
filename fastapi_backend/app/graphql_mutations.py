@@ -1,10 +1,10 @@
 import dacot_models as dm
 from graphene import *
-from graphql_models import *
+from .graphql_models import *
 from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
-from complex_operations import *
+from .complex_operations import *
 from datetime import datetime
 import sys
 import traceback

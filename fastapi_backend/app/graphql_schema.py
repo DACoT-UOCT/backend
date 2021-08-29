@@ -1,8 +1,8 @@
 import logging
 from graphene import *
-from graphql_mutations import *
-from graphql_queries import *
-from graphql_models import *
+from .graphql_mutations import *
+from .graphql_queries import *
+from .graphql_models import *
 
 class Mutation(ObjectType):
     # Project
