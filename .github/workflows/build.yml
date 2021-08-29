@@ -2,16 +2,10 @@ on:
   push:
     branches:
       - "master"
-  pull_request:
 
 name: CI
 jobs:
-  add-reviews:
-    if: ${{ github.event_name == 'pull_request'}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: kentaro-m/auto-assign-action@v1.1.2
-  coverage_test:
+  test-and-coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,49 +20,30 @@ jobs:
           cd dacot_models && pip install . && cd ..
       - name: Run coverage tool
         run: |
-          coverage run -m unittest -v
+          coverage run -m pytest -v tests/
       - name: Generate xml coverage report
         run: |
-          coverage report -m
+          coverage report --omit '*python3*' -m
           coverage xml -i
-      - name: Generate pylint report
-        run: |
-          pushd ..
-          pylint backend/ --output-format=parseable -r n --exit-zero > backend/pylint_report.txt
-          popd
-          sed -i 's|^backend/||g' pylint_report.txt
-      - name: Generate flake8 report
-        run: |
-          flake8 --exit-zero . > flake8_report.txt
       - name: Upload xml coverage report
         uses: actions/upload-artifact@v2.2.2
         with:
           name: report
           path: coverage.xml
-      - name: Upload pylint report
-        uses: actions/upload-artifact@v2.2.2
-        with:
-          name: report
-          path: pylint_report.txt
-      - name: Upload flake8 report
-        uses: actions/upload-artifact@v2.2.2
-        with:
-          name: report
-          path: flake8_report.txt
   sonarcloud:
     runs-on: ubuntu-latest
-#    needs: [coverage_test]
+    needs: [test-and-coverage]
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-#      - name: Download coverage report
-#        uses: actions/download-artifact@v2.0.8
-#        with:
-#          name: report
-#      - name: List files in coverage report
-#        run: |
-#          ls -lah /home/runner/work/backend/backend
+      - name: Download coverage report
+        uses: actions/download-artifact@v2.0.8
+        with:
+          name: report
+      - name: List files in coverage report
+        run: |
+          ls -lah /home/runner/work/backend/backend
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         env:
