@@ -75,6 +75,25 @@ class DeleteController(CustomMutation):
             return cls.log_gql_error('Failed to delete controller. Cause: {}'.format(str(exp)))
         return cid
 
+class EnableController(CustomMutation):
+    class Arguments:
+        cid = NonNull(String)
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, cid):
+        ctrl = dm.ControllerModel.objects(id=cid).first()
+        if not ctrl:
+            return cls.log_gql_error('Failed to enable controller. Controller Id {} not found'.format(cid))
+        try:
+            ctrl.disabled = False
+            ctrl.save()
+        except Exception as exp:
+            return cls.log_gql_error('Failed to enable controller. Cause: {}'.format(str(exp)))
+        cls.log_action('Controller {} enabled.'.format(cid))
+        return cid
+
 class DeleteProject(CustomMutation):
     class Arguments:
         data = GetProjectInput()

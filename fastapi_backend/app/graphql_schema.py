@@ -16,6 +16,7 @@ class Mutation(ObjectType):
     update_commune = UpdateCommune.Field()
     # ControllerModel
     delete_controller = DeleteController.Field()
+    enable_controller = EnableController.Field()
     update_controller = UpdateControllerModel.Field()
     create_controller = CreateControllerModel.Field()
     # FailedPlans
