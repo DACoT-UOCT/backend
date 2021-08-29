@@ -226,6 +226,25 @@ class DeleteCompany(CustomMutation):
         cls.log_action('Company {} deleted'.format(data.name))
         return data.name
 
+class EnableCompany(CustomMutation):
+    class Arguments:
+        data = DeleteCompanyInput()
+
+    Output = String
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        comp = dm.ExternalCompany.objects(name=data.name).first()
+        if not comp:
+            return cls.log_gql_error('Company {} not found'.format(data.name))
+        try:
+            comp.disabled = False
+            comp.save()
+        except Exception as excep:
+            return cls.log_gql_error('Failed to enable company {}. {}'.format(data.name, str(excep)))
+        cls.log_action('Company {} enabled'.format(data.name))
+        return data.name
+
 class CreateCompany(CustomMutation):
     class Arguments:
         data = CreateCompanyInput()

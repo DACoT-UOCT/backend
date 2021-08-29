@@ -24,6 +24,7 @@ class Mutation(ObjectType):
     # Company
     delete_company = DeleteCompany.Field()
     create_company = CreateCompany.Field()
+    enable_company = EnableCompany.Field()
     # User
     create_user = CreateUser.Field()
     delete_user = DeleteUser.Field()
