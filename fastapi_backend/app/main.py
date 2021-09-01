@@ -1,12 +1,16 @@
 import json
 from fastapi import FastAPI, Request, Depends
 from fastapi.logger import logger
+from fastapi.encoders import jsonable_encoder
 from mongoengine import connect
 from starlette.datastructures import URL
 from starlette.config import Config
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import HTMLResponse, RedirectResponse, Response
 from authlib.integrations.starlette_client import OAuth, OAuthError
+from google.oauth2 import id_token
+from google.auth.transport import requests as GoogleAuthReq
+from pydantic import BaseModel
 
 from .config import get_settings
 from .custom_graphql_app import CustomGraphQLApp
@@ -49,6 +53,13 @@ async def graphql(request: Request):
 
 logger.warning("App Ready")
 
+class User(BaseModel):
+    email: str = None
+    is_admin: bool = False
+    rol: str = None
+    area: str = None
+    full_name: str = None
+
 app.add_middleware(SessionMiddleware, secret_key="!secret")
 
 gconfig = Config('.env')
@@ -61,37 +72,37 @@ oauth.register(name='google',
     }
 )
 
-@app.get('/home')
-async def homepage(request: Request):
-    user = request.session.get('user')
-    print(user)
-    if user:
-        data = json.dumps(user)
-        html = f'<pre>{data}</pre><a href="/logout">logout</a>'
-        return HTMLResponse(html)
-    return HTMLResponse('<a href="/login">login</a>')
+def get_user_from_token(token):
+    return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())    
 
-@app.get('/login')
-async def login(request: Request):
-    # redirect_uri = request.url_for('auth')
-    redirect_uri = 'http://localhost:8081/auth'
-    return await oauth.google.authorize_redirect(request, redirect_uri)
-
-
-@app.get('/auth')
-async def auth(request: Request):
+@app.post('/swap_token')
+async def swap(request: Request):
+    gtoken = jsonable_encoder(await request.body())
     try:
-        token = await oauth.google.authorize_access_token(request)
-    except OAuthError as error:
-        return HTMLResponse(f'<h1>{error.error}</h1>')
-    user = await oauth.google.parse_id_token(request, token)
+        user = get_user_from_token(gtoken)
+    except Exception as ex:
+        return Response('', status_code=500)
+    if not (user['email'] and user['email_verified']):
+        return Response('Invalid email data', status_code=422)
     request.session['user'] = dict(user)
-    return RedirectResponse(url='/home')
-
 
 @app.get('/logout')
 async def logout(request: Request):
     request.session.pop('user', None)
-    return RedirectResponse(url='/home')
+
+@app.get('/me')
+async def me(request: Request):
+    if 'user' not in request.session:
+        return Response(None, status_code=404)
+    u = request.session['user']
+    r = User(
+        email=u['email'],
+        is_admin=False,
+        rol='TIC',
+        area='Personal UOCT',
+        full_name=u['name']
+    )
+    print(r)
+    return r
 
 logger.warning("Security Ready")
