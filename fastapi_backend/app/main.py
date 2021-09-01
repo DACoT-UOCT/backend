@@ -11,6 +11,7 @@ from authlib.integrations.starlette_client import OAuth, OAuthError
 from google.oauth2 import id_token
 from google.auth.transport import requests as GoogleAuthReq
 from pydantic import BaseModel
+import dacot_models as dm
 
 from .config import get_settings
 from .custom_graphql_app import CustomGraphQLApp
@@ -56,6 +57,7 @@ logger.warning("App Ready")
 class User(BaseModel):
     email: str = None
     is_admin: bool = False
+    disabled: bool = True
     rol: str = None
     area: str = None
     full_name: str = None
@@ -95,13 +97,12 @@ async def me(request: Request):
     if 'user' not in request.session:
         return Response(None, status_code=404)
     u = request.session['user']
-    r = User(
-        email=u['email'],
-        is_admin=False,
-        rol='TIC',
-        area='Personal UOCT',
-        full_name=u['name']
-    )
+    dbu = dm.User.objects(email=u['email']).first()
+    if not dbu:
+        return Response(None, status_code=404)
+    if dbu.disabled:
+        return Response(None, status_code=422)
+    r = User(**dbu.to_mongo())
     print(r)
     return r
 
