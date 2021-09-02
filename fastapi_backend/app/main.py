@@ -62,7 +62,7 @@ class User(BaseModel):
     area: str = None
     full_name: str = None
 
-app.add_middleware(SessionMiddleware, secret_key="!secret", same_site='None')
+app.add_middleware(SessionMiddleware, secret_key="!secret", same_site='None', https_only=True)
 
 gconfig = Config('.env')
 oauth = OAuth(gconfig)
