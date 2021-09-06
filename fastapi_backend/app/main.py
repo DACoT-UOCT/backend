@@ -75,7 +75,28 @@ oauth.register(name='google',
 )
 
 def get_user_from_token(token):
-    return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())    
+    return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())
+
+def create_new_session(email):
+    s = dm.ActiveUserSession(email=email).first()
+    if not s:
+        s = dm.ActiveUserSession()
+        s.email = email
+    s.valid = True
+    s.save()
+
+def destroy_session(email):
+    s = dm.ActiveUserSession(email=email).first()
+    if not s:
+        return
+    s.valid = False
+    s.save()
+
+def check_session(email):
+    s = dm.ActiveUserSession(email=email).first()
+    if not s:
+        return False
+    return s.valid
 
 @app.post('/swap_token')
 async def swap(request: Request):
@@ -86,10 +107,14 @@ async def swap(request: Request):
         return Response('', status_code=500)
     if not (user['email'] and user['email_verified']):
         return Response('Invalid email data', status_code=422)
+    create_new_session(user['email'])
     request.session['user'] = dict(user)
 
 @app.get('/logout')
 async def logout(request: Request):
+    if 'user' in request.session:
+        u = request.session['user']
+        destroy_session(u['email'])
     request.session.pop('user', None)
 
 @app.get('/me')
@@ -103,6 +128,8 @@ async def me(request: Request):
     if dbu.disabled:
         return Response(None, status_code=422)
     r = User(**dbu.to_mongo())
+    if not check_session(r['email']):
+        return Response(None, status_code=404)
     return r
 
 logger.warning("Security Ready")

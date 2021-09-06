@@ -240,3 +240,8 @@ class APIKeyUsers(Document):
     meta = {"collection": "APIKeyUsers"}
     key = StringField(required=True, unique=True)
     secret = StringField(required=True, unique=True)
+
+class ActiveUserSession(Document):
+    meta = {"collection": "UserSessions"}
+    email = StringField(required=True, unique=True)
+    valid = BooleanField(required=True, default=False)
