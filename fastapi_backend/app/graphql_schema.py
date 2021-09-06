@@ -36,6 +36,8 @@ class Mutation(ObjectType):
     set_veh_intergreen = SetIntergreen.Field()
     # Plans
     compute_tables = ComputeTimingTables.Field()
+    # Single Project Sync with Control
+    sync_project = SyncProjectFromControl.Field()
 
 dacot_schema = Schema(query=Query, mutation=Mutation, types=[User])
 

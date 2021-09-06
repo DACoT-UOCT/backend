@@ -67,6 +67,12 @@ class PlanParseFailedMessage(MOT):
         model = dm.PlanParseFailedMessage
         interfaces = (Node,)
 
+class SyncFromControlResult(ObjectType):
+    oid = NonNull(String)
+    code = NonNull(Int)
+    date = NonNull(DateTime)
+    message = NonNull(String)
+
 class PartialPlanParseFailedMessage(ObjectType):
     id = NonNull(String)
     date = NonNull(DateTime)

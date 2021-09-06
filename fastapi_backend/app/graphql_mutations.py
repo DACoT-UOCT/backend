@@ -5,6 +5,7 @@ from fastapi.logger import logger
 from graphql import GraphQLError
 from copy import deepcopy
 from .complex_operations import *
+from .control_operations import *
 from datetime import datetime
 import sys
 import traceback
@@ -50,6 +51,36 @@ class CustomMutation(Mutation):
         message = 'DACoT_GraphQLError: {}'.format(message)
         cls.log_action(message)
         return GraphQLError(message)
+
+class SyncProjectFromControl(CustomMutation):
+    class Arguments:
+        data = GetProjectInput()
+
+    Output = SyncFromControlResult
+
+    @classmethod
+    def mutate(cls, root, info, data):
+        if data.status != 'PRODUCTION':
+            msg = 'Cannot sync a project in {} status'.format(data.status)
+            cls.log_gql_error(msg)
+            return SyncFromControlResult(oid=data.oid, code=400, date=datetime.now(), message=msg)
+        proj = dm.Project.objects(oid=data.oid, metadata__status=data.status, metadata__version='latest').first()
+        if not proj:
+            msg = 'Project {} in status {} not found.'.format(data.oid, data.status)
+            cls.log_gql_error(msg)
+            return SyncFromControlResult(oid=data.oid, code=404, date=datetime.now(), message=msg)
+        try:
+            cls.log_action('Starting sync for {}'.format(data.oid))
+            base, proj = cls.generate_new_project_version(proj)
+            sync = SyncProject(proj)
+            sync.run()
+        except Exception as excep:
+            msg = 'Error deleting project {} in status {}. {}'.format(data.oid, data.status, str(excep))
+            cls.log_gql_error(msg)
+            return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
+        cls.log_action('Done sync for project {} in status {}.'.format(data.oid, data.status))
+        return SyncFromControlResult(oid=data.oid, code=200, date=datetime.now(), message='OK')
+
 
 class DeleteController(CustomMutation):
     class Arguments:

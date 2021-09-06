@@ -120,7 +120,7 @@ async def logout(request: Request):
 @app.get('/me')
 async def me(request: Request):
     if 'user' not in request.session:
-        return Response(None, status_code=404)
+        return Response(None, status_code=400)
     u = request.session['user']
     dbu = dm.User.objects(email=u['email']).first()
     if not dbu:
@@ -129,7 +129,7 @@ async def me(request: Request):
         return Response(None, status_code=422)
     r = User(**dbu.to_mongo())
     if not check_session(r.email):
-        return Response(None, status_code=404)
+        return Response(None, status_code=400)
     return r
 
 logger.warning("Security Ready")
