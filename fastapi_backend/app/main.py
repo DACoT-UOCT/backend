@@ -128,7 +128,7 @@ async def me(request: Request):
     if dbu.disabled:
         return Response(None, status_code=422)
     r = User(**dbu.to_mongo())
-    if not check_session(r['email']):
+    if not check_session(r.email):
         return Response(None, status_code=404)
     return r
 
