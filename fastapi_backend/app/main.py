@@ -62,7 +62,7 @@ class User(BaseModel):
     area: str = None
     full_name: str = None
 
-app.add_middleware(SessionMiddleware, secret_key="!secret", same_site='None', https_only=True)
+app.add_middleware(SessionMiddleware, secret_key=get_settings().authjwt_secret_key, same_site='None', https_only=True, max_age=2592000)
 
 gconfig = Config('.env')
 oauth = OAuth(gconfig)
@@ -103,7 +103,6 @@ async def me(request: Request):
     if dbu.disabled:
         return Response(None, status_code=422)
     r = User(**dbu.to_mongo())
-    print(r)
     return r
 
 logger.warning("Security Ready")
