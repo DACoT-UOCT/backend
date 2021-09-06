@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     mail_extra_targets: List[str] = list()
     authjwt_secret_key: str = '^secret!!#'
     apikey_users_file: str = '/app/fake_users.json'
+    utc_user: str = 'secret_user'
+    utc_passwd: str = 'secret_pass'
+    utc_host: str = '127.0.0.1'
+    utc_port: int = 8023
 
 settings = Settings()
 

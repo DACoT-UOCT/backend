@@ -75,7 +75,7 @@ class SyncProjectFromControl(CustomMutation):
             sync = SyncProject(proj)
             sync.run()
         except Exception as excep:
-            msg = 'Error deleting project {} in status {}. {}'.format(data.oid, data.status, str(excep))
+            msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
         cls.log_action('Done sync for project {} in status {}.'.format(data.oid, data.status))
