@@ -78,7 +78,7 @@ def get_user_from_token(token):
     return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())
 
 def create_new_session(email):
-    s = dm.ActiveUserSession(email=email).first()
+    s = dm.ActiveUserSession.objects(email=email).first()
     if not s:
         s = dm.ActiveUserSession()
         s.email = email
@@ -86,14 +86,14 @@ def create_new_session(email):
     s.save()
 
 def destroy_session(email):
-    s = dm.ActiveUserSession(email=email).first()
+    s = dm.ActiveUserSession.objects(email=email).first()
     if not s:
         return
     s.valid = False
     s.save()
 
 def check_session(email):
-    s = dm.ActiveUserSession(email=email).first()
+    s = dm.ActiveUserSession.objects(email=email).first()
     if not s:
         return False
     return s.valid
