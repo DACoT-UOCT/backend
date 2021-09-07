@@ -15,14 +15,20 @@ class SyncProject:
         self.__re_scoot = re.compile(r'^(\d+)\s*(XSCO|SCOO).*$')
         self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
         self.__re_program_hour = re.compile(r'(?P<hour>\d{2}:\d{2}:\d{2}).*$')
+        self.__table_id_to_day = {
+            '1': 'LU',
+            '2': 'SA',
+            '3': 'DO'
+        }
 
     def run(self):
         self.__run_login_check()
         out_block = self.__read_control()
-        self.__build_programs(out_block)
+        progs = self.__build_programs(out_block)
 
     def __build_programs(self, out):
         kl = [k for k in out if 'get-programs-' in k]
+        res = {}
         for k in kl:
             tid = k[-1]
             current_time = ''
@@ -35,17 +41,29 @@ class SyncProject:
                 if new_hour[0]:
                     current_time = new_hour[1]
                 if prog_match:
-                    pass
+                    res[(self.__table_id_to_day[tid], current_time)] = prog_match.group('plan')
                 elif is_extra_day[0]:
                     line_without_day = is_extra_day[1]
-                    line_table = is_extra_day[2]
-                    pass
+                    line_day = is_extra_day[2]
+                    extra_plan_match = self.__re_program.match(line_without_day)
+                    extra_scoot_match = self.__check_is_scoot(line_without_day)
+                    extra_demand_match = self.__check_is_demand(line_without_day)
+                    if extra_plan_match:
+                        res[(line_day, current_time)] = extra_plan_match.group('plan')
+                    elif extra_scoot_match[0]:
+                        res[(line_day, current_time)] = extra_scoot_match[1]
+                    elif extra_demand_match[0]:
+                        res[(line_day, current_time)] = extra_demand_match[1]
                 elif is_scoot_change[0]:
-                    pass
+                    res[(self.__table_id_to_day[tid], current_time)] = is_scoot_change[1]
                 elif is_demand_change[0]:
-                    pass
+                    res[(self.__table_id_to_day[tid], current_time)] = is_demand_change[1]
                 else:
                     pass
+        final_progs = []
+        for k, v in res.items():
+            final_progs.append((k[0], k[1], v))
+        return final_progs
 
     def __check_new_hour(self, line):
         match = self.__re_program_hour.match(line)
@@ -77,13 +95,13 @@ class SyncProject:
 
     def __check_is_day(self, line):
         to_spanish = {
-            'MONDAY ': 'L',
+            'MONDAY ': 'LU',
             'TUESDAY ': 'MA',
             'WEDNESDAY ': 'MI',
-            'THURSDAY ': 'J',
-            'FRIDAY ': 'V',
-            'SATURDAY ': 'S',
-            'SUNDAY ': 'D'
+            'THURSDAY ': 'JU',
+            'FRIDAY ': 'VI',
+            'SATURDAY ': 'SA',
+            'SUNDAY ': 'DO'
         }
         days = ['MONDAY ', 'TUESDAY ', 'WEDNESDAY ', 'THURSDAY ', 'FRIDAY ', 'SATURDAY ', 'SUNDAY ']
         for d in days:
