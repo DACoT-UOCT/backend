@@ -97,8 +97,7 @@ class TelnetCommandExecutor:
         return out, sys.getsizeof(out)
 
     def reset(self):
-        if self.__logger:
-            self.__logger.warning('reset() called! -> INTERNAL STATE OF TelnetCommandExecutor has been DELETED!')
+        self.__log_print('reset() called! -> INTERNAL STATE OF TelnetCommandExecutor has been DELETED!')
         self.__reads_outputs.clear()
         self.__command_history.clear()
         self.__commands.queue.clear()
