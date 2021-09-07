@@ -12,6 +12,8 @@ class SyncProject:
         self.__read_remote_sleep = 5
         self.__re_ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|[0-9]|\[[0-?]*[ -/]*[@-~])|\r|\n')
         self.__re_program = re.compile(r'(?P<hour>(\d{2}:\d{2}:\d{2})?)(\d{3})?\s+PLAN\s+(?P<junction>[J|A]\d{6})\s+(?P<plan>(\d+|[A-Z]{1,2}))\s+TIMETABLE$')
+        self.__re_scoot = re.compile(r'^(\d+)\s*(XSCO|SCOO).*$')
+        self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
 
     def run(self):
         self.__run_login_check()
@@ -22,12 +24,62 @@ class SyncProject:
         kl = [k for k in out if 'get-programs-' in k]
         for k in kl:
             tid = k[-1]
+            current_time = ''
             for line in out[k]:
                 prog_match = self.__re_program.match(line)
+                is_extra_day = self.__check_is_day(line)
+                is_scoot_change = self.__check_is_scoot(line)
+                is_demand_change = self.__check_is_demand(line)
                 if prog_match:
                     pass
+                elif is_extra_day[0]:
+                    line_without_day = is_extra_day[1]
+                    line_table = is_extra_day[2]
+                    pass
+                elif is_scoot_change[0]:
+                    pass
+                elif is_demand_change[0]:
+                    pass
                 else:
-                    print(line)
+                    pass
+
+    def __check_is_demand(self, line):
+        if self.__re_demand.match(line):
+            if 'XDEM' in line:
+                return (True, 'XDEM')
+            elif 'DEMA' in line:
+                return (True, 'DEMA')
+            else:
+                return (False, None)
+        else:
+            return (False, None)
+
+    def __check_is_scoot(self, line):
+        if self.__re_scoot.match(line):
+            if 'XSCO' in line:
+                return (True, 'XSCO')
+            elif 'SCOO' in line:
+                return (True, 'SCOO')
+            else:
+                return (False, None)
+        else:
+            return (False, None)
+
+    def __check_is_day(self, line):
+        to_spanish = {
+            'MONDAY ': 'L',
+            'TUESDAY ': 'MA',
+            'WEDNESDAY ': 'MI',
+            'THURSDAY ': 'J',
+            'FRIDAY ': 'V',
+            'SATURDAY ': 'S',
+            'SUNDAY ': 'D'
+        }
+        days = ['MONDAY ', 'TUESDAY ', 'WEDNESDAY ', 'THURSDAY ', 'FRIDAY ', 'SATURDAY ', 'SUNDAY ']
+        for d in days:
+            if d in line:
+                return (True, line.replace(d, ''), to_spanish[d])
+        return (False, None, None)
 
     def __read_control(self):
         self.__exec.reset()
