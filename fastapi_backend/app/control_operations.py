@@ -14,6 +14,7 @@ class SyncProject:
         self.__re_program = re.compile(r'(?P<hour>(\d{2}:\d{2}:\d{2})?)(\d{3})?\s+PLAN\s+(?P<junction>[J|A]\d{6})\s+(?P<plan>(\d+|[A-Z]{1,2}))\s+TIMETABLE$')
         self.__re_scoot = re.compile(r'^(\d+)\s*(XSCO|SCOO).*$')
         self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
+        self.__re_program_hour = re.compile(r'(?P<hour>\d{2}:\d{2}:\d{2}).*$')
 
     def run(self):
         self.__run_login_check()
@@ -26,10 +27,13 @@ class SyncProject:
             tid = k[-1]
             current_time = ''
             for line in out[k]:
+                new_hour = self.__check_new_hour(line)
                 prog_match = self.__re_program.match(line)
                 is_extra_day = self.__check_is_day(line)
                 is_scoot_change = self.__check_is_scoot(line)
                 is_demand_change = self.__check_is_demand(line)
+                if new_hour[0]:
+                    current_time = new_hour[1]
                 if prog_match:
                     pass
                 elif is_extra_day[0]:
@@ -42,6 +46,12 @@ class SyncProject:
                     pass
                 else:
                     pass
+
+    def __check_new_hour(self, line):
+        match = self.__re_program_hour.match(line)
+        if match:
+            return (True, match.group('hour')[:-3])
+        return (False, None)
 
     def __check_is_demand(self, line):
         if self.__re_demand.match(line):
