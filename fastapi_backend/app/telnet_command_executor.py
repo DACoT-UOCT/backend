@@ -101,6 +101,7 @@ class TelnetCommandExecutor:
         self.__reads_outputs.clear()
         self.__command_history.clear()
         self.__commands.queue.clear()
+        self.__current_command = "init"
 
     def __set_max_window_size(self, tsocket, command, option):
         # See https://stackoverflow.com/questions/38288887/python-telnetlib-read-until-returns-cut-off-string
@@ -136,6 +137,8 @@ class TelnetCommandExecutor:
                     if debug:
                         self.__log_print("Adding output of size {} bytes to command {}".format(size, self.__current_command))
                     self.__reads_outputs[self.__current_command].append(output)
+                    if size == 0:
+                        raise ValueError('No response from last command. Size = 0!')
                 elif "sleep" == cmd[0]:
                     cmd[1](telnet=tn_client)
                 else:

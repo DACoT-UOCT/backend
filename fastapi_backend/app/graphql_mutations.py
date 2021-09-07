@@ -78,6 +78,7 @@ class SyncProjectFromControl(CustomMutation):
             msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
+        # TODO: Save in new try/except block
         cls.log_action('Done sync for project {} in status {}.'.format(data.oid, data.status))
         return SyncFromControlResult(oid=data.oid, code=200, date=datetime.now(), message='OK')
 
