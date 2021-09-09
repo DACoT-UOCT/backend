@@ -51,7 +51,7 @@ class SyncProject:
                     new_inter = dm.JunctionIntergreenValue()
                     new_inter.phfrom = ped_inter.phfrom
                     new_inter.phto = ped_inter.phto
-                    new_inter.value = DEFAULT_VEHICLE_INTERGREEN_VALUE
+                    new_inter.value = str(DEFAULT_VEHICLE_INTERGREEN_VALUE)
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
             else:
@@ -61,7 +61,7 @@ class SyncProject:
                     new_inter = dm.JunctionIntergreenValue()
                     new_inter.phfrom = ped_inter.phfrom
                     new_inter.phto = ped_inter.phto
-                    new_inter.value = junc_veh_inter
+                    new_inter.value = str(junc_veh_inter)
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
         compute = ComputeJunctionPlansTables(self.__proj)
