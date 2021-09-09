@@ -99,7 +99,43 @@ class SyncProject:
         final_progs = []
         for k, v in res.items():
             final_progs.append((k[0], k[1], v))
-        return final_progs
+        return self.__sort_programs(final_progs)
+
+    def __sort_programs(self, progs):
+        dmap = {
+            'LU': 0,
+            'MA': 1,
+            'MI': 2,
+            'JU': 3,
+            'VI': 4,
+            'SA': 5,
+            'DO': 6
+        }
+        rdmap = {
+            0: 'LU',
+            1: 'MA',
+            2: 'MI',
+            3: 'JU',
+            4: 'VI',
+            5: 'SA',
+            6: 'DO'
+        }
+        to_sort = []
+        for p in progs:
+            a = dmap[p[0]]
+            b = self.__time_to_mins(p[1])
+            to_sort.append((a, b, p[1], p[2]))
+        print(to_sort)
+        sorted_plans = sorted(to_sort, key=lambda x: (x[0], x[1]))
+        res = []
+        for i in sorted_plans:
+            res.append((rdmap[i[0]], i[2], i[3]))
+        print(res)
+        return res
+
+    def __time_to_mins(self, timestr):
+        h, m = timestr.split(':')
+        return int(h) * 60 + int(m)
 
     def __check_new_hour(self, line):
         match = self.__re_program_hour.match(line)
