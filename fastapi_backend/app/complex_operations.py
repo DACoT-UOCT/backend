@@ -182,11 +182,14 @@ class ComputeJunctionPlansTables:
         final_result = {}
         for plid, phases in temp_res.items():
             final_result[plid] = {}
-            for phid, row in phases.items():
+            sorted_phases = sorted(phases.items(), key=lambda x: x[0])
+            for phid, row in sorted_phases:
                 if phid + 1 in phases:
                     phid_next = phid + 1
                 else:
-                    phid_next = 1
+                    phid_next = sorted_phases[0][0]
+                if phid_next == phid:
+                    raise ValueError('BUG: This should not be posible, we only have one phase')
                 tvv = phases[phid_next][2] - row[4]
                 gamma = int(tvv < 0)
                 tvv = tvv + gamma * row[1]
@@ -249,6 +252,7 @@ class ComputeJunctionPlansTables:
         try:
             table = self.__compute_junc_tables(junc)
         except Exception as excep:
+            traceback.print_exc()
             raise ValueError('Failed to compute tables for JID={}. {}'.format(junc.jid, str(excep)))
         junc = self.__rebuild_junction_plans(junc, table)
         return junc

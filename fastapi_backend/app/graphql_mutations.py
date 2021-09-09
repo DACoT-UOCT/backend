@@ -1,3 +1,5 @@
+DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
+
 import dacot_models as dm
 from graphene import *
 from .graphql_models import *
@@ -9,8 +11,6 @@ from .control_operations import *
 from datetime import datetime
 import sys
 import traceback
-
-DEFAULT_VEHICLE_INTERGREEN_VALUE = 4
 
 class CustomMutation(Mutation):
     # FIXME: Add current user to log

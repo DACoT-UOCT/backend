@@ -2,6 +2,8 @@ import re
 import dacot_models as dm
 from .config import get_settings
 from .telnet_command_executor import TelnetCommandExecutor as TCE
+from .graphql_mutations import DEFAULT_VEHICLE_INTERGREEN_VALUE
+from .complex_operations import ComputeJunctionPlansTables
 
 class SyncProjectFromControlException(Exception):
     pass
@@ -28,6 +30,7 @@ class SyncProject:
     def run(self):
         self.__run_login_check()
         out_block = self.__read_control()
+        # TODO: Get sequence and intergreens?
         progs = self.__build_programs(out_block)
         plans = self.__build_plans(out_block)
         self.__update_project(plans, progs)
@@ -40,9 +43,42 @@ class SyncProject:
             i.validate()
             new_progs.append(i)
         self.__proj.otu.programs = new_progs
-        # Update plans
-        # Call SetVehInt, if use_default_int check
-        # Call ComputeTables
+        for junc in self.__proj.otu.junctions:
+            if junc.metadata.use_default_vi4:
+                junc.plans = self.__generate_plans_objs(plans[junc.jid])
+                veh_inters = []
+                for ped_inter in junc.intergreens:
+                    new_inter = dm.JunctionIntergreenValue()
+                    new_inter.phfrom = ped_inter.phfrom
+                    new_inter.phto = ped_inter.phto
+                    new_inter.value = DEFAULT_VEHICLE_INTERGREEN_VALUE
+                    veh_inters.append(new_inter)
+                junc.veh_intergreens = veh_inters
+            else:
+                junc_veh_inter = junc.veh_intergreens[0].value
+                junc.plans = self.__generate_plans_objs(plans[junc.jid])
+                for ped_inter in junc.intergreens:
+                    new_inter = dm.JunctionIntergreenValue()
+                    new_inter.phfrom = ped_inter.phfrom
+                    new_inter.phto = ped_inter.phto
+                    new_inter.value = junc_veh_inter
+                    veh_inters.append(new_inter)
+                junc.veh_intergreens = veh_inters
+        compute = ComputeJunctionPlansTables(self.__proj)
+        self.__proj = compute.run()
+
+    def __generate_plans_objs(self, plans):
+        res = []
+        for p in plans:
+            start = []
+            for s in p[2]:
+                val = dm.JunctionPlanPhaseValue(phid=s[0], value=s[1])
+                val.validate()
+                start.append(val)
+            newp = dm.JunctionPlan(plid=p[0], cycle=p[1], system_start=start)
+            newp.validate()
+            res.append(newp)
+        return res
 
     def __build_plans(self, out):
         res = {}
@@ -125,12 +161,10 @@ class SyncProject:
             a = dmap[p[0]]
             b = self.__time_to_mins(p[1])
             to_sort.append((a, b, p[1], p[2]))
-        print(to_sort)
         sorted_plans = sorted(to_sort, key=lambda x: (x[0], x[1]))
         res = []
         for i in sorted_plans:
             res.append((rdmap[i[0]], i[2], i[3]))
-        print(res)
         return res
 
     def __time_to_mins(self, timestr):
