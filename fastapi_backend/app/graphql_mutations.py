@@ -73,12 +73,18 @@ class SyncProjectFromControl(CustomMutation):
             cls.log_action('Starting sync for {}'.format(data.oid))
             base, proj = cls.generate_new_project_version(proj)
             sync = SyncProject(proj)
-            sync.run()
+            proj = sync.run()
         except Exception as excep:
             msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
-        # TODO: Save in new try/except block
+        try:
+            base.save()
+            proj.save()
+        except Exception as excep:
+            msg = 'Error saving sync result for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
+            cls.log_gql_error(msg)
+            return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
         cls.log_action('Done sync for project {} in status {}.'.format(data.oid, data.status))
         return SyncFromControlResult(oid=data.oid, code=200, date=datetime.now(), message='OK')
 

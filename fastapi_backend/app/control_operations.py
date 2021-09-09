@@ -1,4 +1,5 @@
 import re
+import dacot_models as dm
 from .config import get_settings
 from .telnet_command_executor import TelnetCommandExecutor as TCE
 
@@ -9,12 +10,15 @@ class SyncProject:
     def __init__(self, project):
         self.__proj = project
         self.__exec = TCE(host=get_settings().utc_host, port=get_settings().utc_port)
-        self.__read_remote_sleep = 5
+        self.__read_remote_sleep = 3
+        self.__read_remote_login_sleep = 12
         self.__re_ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|[0-9]|\[[0-?]*[ -/]*[@-~])|\r|\n')
         self.__re_program = re.compile(r'(?P<hour>(\d{2}:\d{2}:\d{2})?)(\d{3})?\s+PLAN\s+(?P<junction>[J|A]\d{6})\s+(?P<plan>(\d+|[A-Z]{1,2}))\s+TIMETABLE$')
         self.__re_scoot = re.compile(r'^(\d+)\s*(XSCO|SCOO).*$')
         self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
         self.__re_program_hour = re.compile(r'(?P<hour>\d{2}:\d{2}:\d{2}).*$')
+        self.__re_plan = re.compile(r'^Plan\s+(?P<id>\d+)\s(?P<junction>J\d{6}).*(?P<cycle>CY\d{3})\s(?P<phases>[A-Z0-9\s,!*]+)$')
+        self.__re_extract_phases = re.compile(r'\s[A-Z]\s\d+')
         self.__table_id_to_day = {
             '1': 'LU',
             '2': 'SA',
@@ -25,6 +29,38 @@ class SyncProject:
         self.__run_login_check()
         out_block = self.__read_control()
         progs = self.__build_programs(out_block)
+        plans = self.__build_plans(out_block)
+        self.__update_project(plans, progs)
+        return self.__proj
+
+    def __update_project(self, plans, progs):
+        new_progs = []
+        for p in progs:
+            i = dm.OTUProgramItem(day=p[0], time=p[1], plan=p[2])
+            i.validate()
+            new_progs.append(i)
+        self.__proj.otu.programs = new_progs
+        # Update plans
+        # Call SetVehInt, if use_default_int check
+        # Call ComputeTables
+
+    def __build_plans(self, out):
+        res = {}
+        for junc in self.__proj.otu.junctions:
+            k = 'get-plans-{}'.format(junc.jid)
+            res[junc.jid] = []
+            for line in out[k]:
+                match = self.__re_plan.match(line)
+                if match:
+                    plan_id = match.group('id')
+                    cycle = match.group('cycle')
+                    cycle_int = int(cycle.split('CY')[1])
+                    phases = []
+                    for x in self.__re_extract_phases.findall(' {}'.format(match.group('phases'))):
+                        name, start = x.strip().split()
+                        phases.append((str(ord(name) - 64), str(int(start))))
+                    res[junc.jid].append((plan_id, cycle_int, phases))
+        return res
 
     def __build_programs(self, out):
         kl = [k for k in out if 'get-programs-' in k]
@@ -142,7 +178,7 @@ class SyncProject:
         if 'Access Denied' in self.__lines_to_string(out['login-pass']):
             raise SyncProjectFromControlException('Invalid Credentials for Control Server')
         if 'Successfully logged in!' not in self.__lines_to_string(out['login-pass']):
-            raise SyncProjectFromControlException('Unknown error in login for Control Servers')
+            raise SyncProjectFromControlException('Unknown error in login for Control Server')
 
     def __logout(self):
         self.__exec.command('end-session', 'ENDS')
@@ -154,9 +190,9 @@ class SyncProject:
         return [i for s in l for i in s]
 
     def __control_login(self):
-        self.__exec.read_until('Username:', 15)
+        self.__exec.read_until('Username:', self.__read_remote_login_sleep)
         self.__exec.command('login-user', get_settings().utc_user)
-        self.__exec.read_until('Password:', 15)
+        self.__exec.read_until('Password:', self.__read_remote_login_sleep)
         self.__exec.command('login-pass', get_settings().utc_passwd)
         self.__exec.read_lines(encoding='iso-8859-1')
 

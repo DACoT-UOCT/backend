@@ -179,9 +179,9 @@ class Controller(EmbeddedDocument):
 
 
 class OTUProgramItem(EmbeddedDocument):
-    day = StringField(choices=["L", "V", "S", "D"], required=True)
+    day = StringField(choices=["L", "V", "S", "D", "LU", "MA", "MI", "JU", "VI", "SA", "DO"], required=True)
     time = StringField(regex=r"\d\d:\d\d", max_length=5, min_length=5, required=True)
-    plan = StringField(max_length=2, required=True)
+    plan = StringField(required=True)
 
 
 class OTUMeta(EmbeddedDocument):
