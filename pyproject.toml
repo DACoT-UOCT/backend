@@ -28,6 +28,7 @@ itsdangerous = "^2.0.1"
 pytest = "^6.2.4"
 coverage = "^5.5"
 dacot-models = {path = "dacot_models"}
+pyte = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
 
