@@ -3,9 +3,6 @@ RUN apt update && apt install -y libmagic1 python3-testresources patch && rm -rf
 RUN python -m pip install --upgrade pip virtualenv poetry
 COPY poetry.lock /poetry.lock
 COPY pyproject.toml /pyproject.toml
-COPY deploy /repo/deploy
-COPY tests /repo/tests
-COPY run-seed.sh /repo/run-seed.sh
 COPY dacot_models /dacot_models
 RUN cd / && poetry install
 COPY run-api.sh /run-api.sh

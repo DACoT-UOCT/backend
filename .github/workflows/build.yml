@@ -54,7 +54,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   build_docker:
     runs-on: ubuntu-latest
-    needs: [sonarcloud]
+    needs: [test-and-coverage]
     steps:
       - uses: actions/checkout@v2
       - run: echo "::set-output name=repo_lower::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
