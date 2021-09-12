@@ -36,6 +36,8 @@ class CustomMutation(Mutation):
         new.id = None
         proj.metadata.version = datetime.now().isoformat()
         new.metadata.version = 'latest'
+        new.metadata.img = proj.metadata.img
+        new.metadata.pdf_data = proj.metadata.pdf_data
         return proj, new
 
     @classmethod
@@ -79,6 +81,7 @@ class SyncProjectFromControl(CustomMutation):
         except Exception as excep:
             msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
+            # FailedParsePlan.save(msg)
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
         try:
             base.save()
