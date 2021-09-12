@@ -140,22 +140,29 @@ class SyncProject:
             if junc.metadata.use_default_vi4:
                 junc.plans = self.__generate_plans_objs(plans[junc.jid])
                 veh_inters = []
-                for ped_inter in junc.intergreens:
+                for inter in junc.intergreens:
                     new_inter = dm.JunctionIntergreenValue()
-                    new_inter.phfrom = ped_inter.phfrom
-                    new_inter.phto = ped_inter.phto
+                    new_inter.phfrom = inter.phfrom
+                    new_inter.phto = inter.phto
                     new_inter.value = str(DEFAULT_VEHICLE_INTERGREEN_VALUE)
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
             else:
-                junc_veh_inter = junc.veh_intergreens[0].value
                 junc.plans = self.__generate_plans_objs(plans[junc.jid])
                 veh_inters = []
-                for ped_inter in junc.intergreens:
+                inters_map = {}
+                for inter in junc.veh_intergreens:
+                    if inter.phfrom not in inters_map:
+                        inters_map[inter.phfrom] = {}
+                    inters_map[inter.phfrom][inter.phto] = str(inter.value)
+                for inter in junc.intergreens:
                     new_inter = dm.JunctionIntergreenValue()
-                    new_inter.phfrom = ped_inter.phfrom
-                    new_inter.phto = ped_inter.phto
-                    new_inter.value = str(junc_veh_inter)
+                    new_inter.phfrom = inter.phfrom
+                    new_inter.phto = inter.phto
+                    val = inters_map.get(inter.phfrom, {}).get(inter.phto)
+                    if not val:
+                        raise ValueError('Missing VI for pair ({}, {})'.format(inter.phfrom, inter.phto))
+                    new_inter.value = val
                     veh_inters.append(new_inter)
                 junc.veh_intergreens = veh_inters
         compute = ComputeJunctionPlansTables(self.__proj)
