@@ -150,6 +150,7 @@ class SyncProject:
             else:
                 junc_veh_inter = junc.veh_intergreens[0].value
                 junc.plans = self.__generate_plans_objs(plans[junc.jid])
+                veh_inters = []
                 for ped_inter in junc.intergreens:
                     new_inter = dm.JunctionIntergreenValue()
                     new_inter.phfrom = ped_inter.phfrom
