@@ -22,6 +22,7 @@ class SyncProject:
         self.__re_scoot = re.compile(r'^(\d+)\s*(XSCO|SCOO).*$')
         self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
         self.__re_program_hour = re.compile(r'(?P<hour>\d{2}:\d{2}:\d{2}).*$')
+        # TODO: Add list of current plans and list of parsed plan, the diff should be an error (Exception)
         self.__re_plan = re.compile(r'^Plan\s+(?P<id>\d+)\s(?P<junction>J\d{6}).*(?P<cycle>CY\d{3})\s(?P<phases>[A-Z0-9\s,!*]+)$')
         self.__re_intergreens_table = re.compile(r'\s(?P<phase_name>[A-Z])\s+(?P<is_demand>[NY])\s+(?P<min_time>\d+)\s+(?P<max_time>\d+)\s+(?P<intergreens>((X|\d+)\s+)+(X|\d+))')
         self.__re_extract_phases = re.compile(r'\s[A-Z]\s\d+')
@@ -122,6 +123,7 @@ class SyncProject:
             for j in cols:
                 if i != j:
                     newi = dm.JunctionIntergreenValue(phfrom=j, phto=i, value=df[i][j])
+                    print(junc.jid, 'NEWI', j, i, df[i][j])
                     newi.validate()
                     inters.append(newi)
         return inters
