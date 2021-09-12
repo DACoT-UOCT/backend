@@ -121,7 +121,7 @@ class SyncProject:
         inters = []
         for i in cols:
             for j in cols:
-                if i != j:
+                if i != j and 'X' not in df[i][j]:
                     newi = dm.JunctionIntergreenValue(phfrom=j, phto=i, value=df[i][j])
                     print(junc.jid, 'NEWI', j, i, df[i][j])
                     newi.validate()
