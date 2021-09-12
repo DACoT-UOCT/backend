@@ -36,8 +36,6 @@ class CustomMutation(Mutation):
         new.id = None
         proj.metadata.version = datetime.now().isoformat()
         new.metadata.version = 'latest'
-        new.metadata.img = proj.metadata.img
-        new.metadata.pdf_data = proj.metadata.pdf_data
         return proj, new
 
     @classmethod

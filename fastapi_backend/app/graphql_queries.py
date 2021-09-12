@@ -87,7 +87,7 @@ class Query(ObjectType):
         return result
 
     def resolve_version(self, info, oid, vid):
-        return dm.Project.objects(oid=oid, metadata__status='PRODUCTION', metadata__version=vid).exclude('metadata.pdf_data').first()
+        return dm.Project.objects(oid=oid, metadata__status='PRODUCTION', metadata__version=vid).first()
 
     def resolve_login_api_key(self, info, key, secret):
         authorize = info.context["request"].state.authorize
