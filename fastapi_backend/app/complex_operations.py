@@ -152,7 +152,6 @@ class ComputeJunctionPlansTables:
             intgto = ord(intg.phto) - 64
             if intgfrom not in eps:
                 eps[intgfrom] = {}
-            print(junc.jid, 'NEWI', intgfrom, intgto, intg.value)
             eps[intgfrom][intgto] = int(intg.value)
         evs = {}
         for intg in junc.veh_intergreens:
