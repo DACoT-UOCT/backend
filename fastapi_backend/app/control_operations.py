@@ -1,4 +1,7 @@
 import re
+import pyte
+import copy
+import pandas as pd
 import dacot_models as dm
 from .config import get_settings
 from .telnet_command_executor import TelnetCommandExecutor as TCE
@@ -20,7 +23,10 @@ class SyncProject:
         self.__re_demand = re.compile(r'^(\d+)\s*(XDEM|DEMA).*$')
         self.__re_program_hour = re.compile(r'(?P<hour>\d{2}:\d{2}:\d{2}).*$')
         self.__re_plan = re.compile(r'^Plan\s+(?P<id>\d+)\s(?P<junction>J\d{6}).*(?P<cycle>CY\d{3})\s(?P<phases>[A-Z0-9\s,!*]+)$')
+        self.__re_intergreens_table = re.compile(r'\s(?P<phase_name>[A-Z])\s+(?P<is_demand>[NY])\s+(?P<min_time>\d+)\s+(?P<max_time>\d+)\s+(?P<intergreens>((X|\d+)\s+)+(X|\d+))')
         self.__re_extract_phases = re.compile(r'\s[A-Z]\s\d+')
+        self.__re_extract_sequence = re.compile(r'Cyclic Check Sequence\s+:\s\[(?P<sequence>[A-Z]+)')
+        self.__re_ctrl_type = re.compile(r'Controller Type\s+:\s\[(?P<ctrl_type>.*)]')
         self.__table_id_to_day = {
             '1': 'LU',
             '2': 'SA',
@@ -28,15 +34,99 @@ class SyncProject:
         }
 
     def run(self):
-        self.__run_login_check()
-        out_block = self.__read_control()
-        # TODO: Get sequence and intergreens?
+        out_block, raw_data = self.__read_control()
+        assert list(raw_data.keys()) == list(out_block.keys())
         progs = self.__build_programs(out_block)
         plans = self.__build_plans(out_block)
-        self.__update_project(plans, progs)
+        inters = self.__build_inters(raw_data)
+        seq = self.__build_sequence(raw_data)
+        self.__update_project(plans, progs, inters, seq)
         return self.__proj
 
-    def __update_project(self, plans, progs):
+    def __build_sequence(self, data):
+        r = {}
+        screen = pyte.Screen(80, 25)
+        stream = pyte.Stream(screen)
+        for junc in self.__proj.otu.junctions:
+            k = 'get-seed-{}'.format(junc.jid)
+            for line in self.__posibles_lists_to_list(data[k]):
+                stream.feed(line)
+            result_screen = '\n'.join(screen.display)
+            seq_info = self.__extract_sequence(junc, result_screen)
+            known_types = {}
+            seq_objs = []
+            for s in junc.sequence:
+                known_types[s.phid_system] = s.type
+            for sid in seq_info['seq']:
+                t = 'No Configurada'
+                if sid in known_types:
+                    t = known_types[sid]
+                seq_objs.append(dm.JunctionPhaseSequenceItem(phid_system=sid, phid=str(ord(sid) - 64), type=t))
+            r[junc.jid] = {
+                'seq': seq_objs,
+                'ctype': seq_info['ctype']
+            }
+        return r
+
+    def __extract_sequence(self, junc, screen):
+        r = {}
+        sequence_match = list(self.__re_extract_sequence.finditer(screen, re.MULTILINE))
+        if len(sequence_match) != 1:
+            raise ValueError('__extract_sequence: Failed to find Sequence for {}'.format(junc.jid))
+        seqstr = sequence_match[0].group('sequence').strip()
+        seq = []
+        for pid in seqstr:
+            seq.append(pid)
+        r['seq'] = seq
+        ctrl_match = list(self.__re_ctrl_type.finditer(screen, re.MULTILINE))
+        if len(ctrl_match) != 1:
+            raise ValueError('__extract_sequence: Failed to find ControllerType for {}'.format(junc.jid))
+        r['ctype'] = ctrl_match[0].group('ctrl_type').strip()
+        return r
+
+    def __build_inters(self, data):
+        r = {}
+        screen = pyte.Screen(80, 25)
+        stream = pyte.Stream(screen)
+        for junc in self.__proj.otu.junctions:
+            k = 'get-seed-timings-{}'.format(junc.jid)
+            for line in self.__posibles_lists_to_list(data[k]):
+                stream.feed(line)
+            result_screen = '\n'.join(screen.display)
+            inters = self.__extract_intergreens(junc, result_screen)
+            r[junc.jid] = inters
+        return r
+
+    def __extract_intergreens(self, junc, screen):
+        rows_match = list(self.__re_intergreens_table.finditer(screen, re.MULTILINE))
+        if len(rows_match) == 0:
+            raise ValueError('__extract_intergreens: Failed to extract intergreens for {}'.format(junc.jid))
+        table = []
+        names = []
+        for row in rows_match:
+            inter_values = row.group('intergreens')
+            names.append(row.group('phase_name'))
+            trow = [row.group('phase_name'), row.group('is_demand'), row.group('min_time'), row.group('max_time')]
+            trow.extend(inter_values.split())
+            table.append(trow)
+        column_names = ['Phase', 'IsDemand', 'MinTime', 'MaxTime']
+        column_names.extend(names)
+        for row in table:
+            if len(row) != len(column_names):
+                raise ValueError('__extract_intergreens: Invalid row length: row={} columns={}'.format(row, len(column_names)))
+        df = pd.DataFrame(table, columns=column_names)
+        df = df.set_index('Phase')
+        cols = df.columns[3:]
+        inters = []
+        for i in cols:
+            for j in cols:
+                if i != j:
+                    newi = dm.JunctionIntergreenValue(phfrom=j, phto=i, value=df[i][j])
+                    newi.validate()
+                    inters.append(newi)
+        return inters
+
+    def __update_project(self, plans, progs, inters, seq):
         new_progs = []
         for p in progs:
             i = dm.OTUProgramItem(day=p[0], time=p[1], plan=p[2])
@@ -44,6 +134,8 @@ class SyncProject:
             new_progs.append(i)
         self.__proj.otu.programs = new_progs
         for junc in self.__proj.otu.junctions:
+            junc.intergreens = inters[junc.jid]
+            junc.sequence = seq[junc.jid]['seq']
             if junc.metadata.use_default_vi4:
                 junc.plans = self.__generate_plans_objs(plans[junc.jid])
                 veh_inters = []
@@ -215,17 +307,53 @@ class SyncProject:
                 return (True, line.replace(d, ''), to_spanish[d])
         return (False, None, None)
 
-    def __read_control(self):
+    def __session1(self):
         self.__exec.reset()
         self.__control_login()
         for junc in self.__proj.otu.junctions:
             self.__list_plans(junc.jid)
             self.__get_programs(junc.jid)
         self.__logout()
-        print('Using plan for {}: {}'.format(self.__proj.oid, self.__exec.history()))
+        print('Using plan for {} (__session1): {}'.format(self.__proj.oid, self.__exec.history()))
         self.__exec.run(debug=True)
         out = self.__exec.get_results()
-        return self.__output_to_text_block(out)
+        self.__run_login_check(out)
+        return (self.__output_to_text_block(out), out)
+
+    def __session2(self):
+        self.__exec.reset()
+        self.__control_login()
+        for junc in self.__proj.otu.junctions:
+            self.__get_sequence(junc.jid)
+        self.__logout()
+        print('Using plan for {} (__session2): {}'.format(self.__proj.oid, self.__exec.history()))
+        self.__exec.run(debug=True)
+        out = self.__exec.get_results()
+        self.__run_login_check(out)
+        return (self.__output_to_text_block(out), out)
+
+    def __session3(self):
+        self.__exec.reset()
+        self.__control_login()
+        for junc in self.__proj.otu.junctions:
+            self.__get_inters(junc.jid)
+        self.__logout()
+        print('Using plan for {} (__session3): {}'.format(self.__proj.oid, self.__exec.history()))
+        self.__exec.run(debug=True)
+        out = self.__exec.get_results()
+        self.__run_login_check(out)
+        return (self.__output_to_text_block(out), out)
+
+    def __read_control(self):
+        out1 = copy.deepcopy(self.__session1())
+        assert list(out1[0].keys()) == list(out1[1].keys())
+        out2 = copy.deepcopy(self.__session2())
+        assert list(out2[0].keys()) == list(out2[1].keys())
+        out3 = copy.deepcopy(self.__session3())
+        assert list(out3[0].keys()) == list(out3[1].keys())
+        clean = {**out1[0], **out2[0], **out3[0]}
+        raw = {**out1[1], **out2[1], **out3[1]}
+        return clean, raw
 
     def __list_plans(self, jid):
         self.__exec.command('get-plans-{}'.format(jid), 'LIPT {} TIMINGS'.format(jid))
@@ -238,13 +366,19 @@ class SyncProject:
             self.__exec.sleep(self.__read_remote_sleep)
             self.__exec.read_lines(encoding='iso-8859-1', line_ending=b'\x1b8\x1b7')
 
-    def __run_login_check(self):
-        self.__exec.reset()
-        self.__control_login()
-        self.__logout()
-        print('Using plan for login: {}'.format(self.__exec.history()))
-        self.__exec.run(debug=True)
-        out = self.__exec.get_results()
+    def __get_sequence(self, jid):
+        self.__exec.command('get-seed-{}'.format(jid), 'SEED {}'.format(jid))
+        self.__exec.sleep(self.__read_remote_sleep)
+        self.__exec.read_until_min_bytes(2000, encoding="iso-8859-1", line_ending=b"\x1b8\x1b7")
+        self.__exec.exit_interactive_command()
+
+    def __get_inters(self, jid):
+        self.__exec.command('get-seed-timings-{}'.format(jid), 'SEED {} UPPER_TIMINGS'.format(jid))
+        self.__exec.sleep(self.__read_remote_sleep)
+        self.__exec.read_until_min_bytes(2000, encoding="iso-8859-1", line_ending=b"\x1b8\x1b7")
+        self.__exec.exit_interactive_command()
+
+    def __run_login_check(self, out):
         if 'Access Denied' in self.__lines_to_string(out['login-pass']):
             raise SyncProjectFromControlException('Invalid Credentials for Control Server')
         if 'Successfully logged in!' not in self.__lines_to_string(out['login-pass']):
@@ -270,13 +404,18 @@ class SyncProject:
         r = {}
         for k, v in data.items():
             t = []
-            for possible_list in v:
-                if type(possible_list) == list:
-                    for line in possible_list:
-                        clean_line = self.__re_ansi_escape.sub('', line).strip()
-                        t.append(clean_line)
-                else:
-                    clean_line = self.__re_ansi_escape.sub('', possible_list).strip()
-                    t.append(clean_line)
+            for i in self.__posibles_lists_to_list(v):
+                clean_line = self.__re_ansi_escape.sub('', i).strip()
+                t.append(clean_line)
             r[k] = t
         return r
+
+    def __posibles_lists_to_list(self, v):
+        t = []
+        for possible_list in v:
+            if type(possible_list) == list:
+                for line in possible_list:
+                    t.append(line)
+            else:
+                t.append(possible_list)
+        return t

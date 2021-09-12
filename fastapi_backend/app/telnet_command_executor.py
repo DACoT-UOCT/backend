@@ -51,7 +51,7 @@ class TelnetCommandExecutor:
     def read_until_min_bytes(self, bytes_count, encoding="ascii", line_ending=b"\n"):
         item = (
             "read_until_min_bytes",
-            lambda **kwargs: self.__read_lines_count_impll(bytes_count, encoding, line_ending, **kwargs),
+            lambda **kwargs: self.__read_lines_count_impl(bytes_count, encoding, line_ending, **kwargs),
         )
         self.__commands.put(item)
 
@@ -74,7 +74,7 @@ class TelnetCommandExecutor:
             lines.append(clean)
         return lines, size
 
-    def __read_lines_count_impll(self, max_count, encoding, line_ending, **kwargs):
+    def __read_lines_count_impl(self, max_count, encoding, line_ending, **kwargs):
         telnet = kwargs["telnet"]
         size = 0
         lines = []
