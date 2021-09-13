@@ -60,7 +60,6 @@ class SyncProjectFromControl(CustomMutation):
 
     @classmethod
     def mutate(cls, root, info, data):
-        # TODO: Send errors from SyncProjectFromControl in PlanParseFailedMessage
         if data.status != 'PRODUCTION':
             msg = 'Cannot sync a project in {} status'.format(data.status)
             cls.log_gql_error(msg)
@@ -79,7 +78,7 @@ class SyncProjectFromControl(CustomMutation):
         except Exception as excep:
             msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
-            # FailedParsePlan.save(msg)
+            # TODO: FailedParsePlan.save(msg)
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
         try:
             base.save()

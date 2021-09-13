@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.logger import logger
 from fastapi.encoders import jsonable_encoder
 from mongoengine import connect
+from mongoengine.connection import disconnect
 from starlette.datastructures import URL
 from starlette.config import Config
 from starlette.middleware.sessions import SessionMiddleware
@@ -18,9 +19,7 @@ from .custom_graphql_app import CustomGraphQLApp
 from .db_init import DBInit
 from .graphql_schema import dacot_schema
 
-connect(host=get_settings().mongo_uri)
-db_init = DBInit(get_settings().apikey_users_file)
-db_init.init()
+from .jobs_sched import scheduler
 
 api_description = """
 API del proyecto Datos Abiertos para el Control de Tránsito
@@ -31,28 +30,8 @@ Técnica Federico Santa María.
 """
 
 app = FastAPI(title="DACoT API", version="v0.2", description=api_description)
-
-
+app.add_middleware(SessionMiddleware, secret_key=get_settings().authjwt_secret_key, same_site='None', https_only=True, max_age=2592000)
 graphql_app = CustomGraphQLApp(schema=dacot_schema)
-
-
-@app.get("/")
-async def graphiql(request: Request):
-    request._url = URL("/graphql")
-    return await graphql_app.handle_graphiql(request=request)
-
-
-@app.post("/")
-async def graphql(request: Request):
-    return await graphql_app.handle_graphql(request=request)
-
-
-@app.post("/graphql")
-async def graphql(request: Request):
-    return await graphql_app.handle_graphql(request=request)
-
-
-logger.warning("App Ready")
 
 class User(BaseModel):
     email: str = None
@@ -61,18 +40,6 @@ class User(BaseModel):
     rol: str = None
     area: str = None
     full_name: str = None
-
-app.add_middleware(SessionMiddleware, secret_key=get_settings().authjwt_secret_key, same_site='None', https_only=True, max_age=2592000)
-
-gconfig = Config('.env')
-oauth = OAuth(gconfig)
-
-oauth.register(name='google',
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
 
 def get_user_from_token(token):
     return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())
@@ -97,6 +64,21 @@ def check_session(email):
     if not s:
         return False
     return s.valid
+
+@app.get("/")
+async def graphiql(request: Request):
+    request._url = URL("/graphql")
+    return await graphql_app.handle_graphiql(request=request)
+
+
+@app.post("/")
+async def graphql(request: Request):
+    return await graphql_app.handle_graphql(request=request)
+
+
+@app.post("/graphql")
+async def graphql(request: Request):
+    return await graphql_app.handle_graphql(request=request)
 
 @app.post('/swap_token')
 async def swap(request: Request):
@@ -132,4 +114,9 @@ async def me(request: Request):
         return Response(None, status_code=400)
     return r
 
-logger.warning("Security Ready")
+@app.on_event('startup')
+async def startup_event():
+    connect(host=get_settings().mongo_uri)
+    db_init = DBInit(get_settings().apikey_users_file)
+    db_init.init()
+    scheduler.start()

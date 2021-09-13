@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     utc_passwd: str = 'secret_pass'
     utc_host: str = '127.0.0.1'
     utc_port: int = 8023
+    sched_jobs_db: str = 'sqlite:///jobs.sqlite'
 
 settings = Settings()
 
