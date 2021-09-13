@@ -21,6 +21,10 @@ from .graphql_schema import dacot_schema
 
 from .jobs_sched import scheduler
 
+connect(host=get_settings().mongo_uri)
+db_init = DBInit(get_settings().apikey_users_file)
+db_init.init()
+
 api_description = """
 API del proyecto Datos Abiertos para el Control de Tránsito
 (DACoT) desarrollado por SpeeDevs en colaboración con la Unidad Operativa de
@@ -116,7 +120,4 @@ async def me(request: Request):
 
 @app.on_event('startup')
 async def startup_event():
-    connect(host=get_settings().mongo_uri)
-    db_init = DBInit(get_settings().apikey_users_file)
-    db_init.init()
     scheduler.start()
