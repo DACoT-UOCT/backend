@@ -1,5 +1,5 @@
 import time
-from pytz import utc
+from pytz import utc, timezone
 import dacot_models as dm
 from .config import get_settings
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -57,9 +57,9 @@ class DACoTJobsScheduler:
             'coalesce': True,
             'max_instances': 1
         }
-        self.__scheduler = AsyncIOScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=utc)
+        self.__scheduler = AsyncIOScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=timezone('America/Santiago'))
         self.__scheduler.add_listener(listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
-        self.__scheduler.add_job(generate_updates_job, trigger=CronTrigger.from_crontab('55 23 * * SUN'), id='junction_updates_generator', replace_existing=True)
+        self.__scheduler.add_job(generate_updates_job, trigger=CronTrigger.from_crontab('59 23 * * SUN'), id='junction_updates_generator', replace_existing=True)
         self.info()
 
     def start(self):
