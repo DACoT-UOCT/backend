@@ -78,7 +78,9 @@ class SyncProjectFromControl(CustomMutation):
         except Exception as excep:
             msg = 'Error in sync for project {} in status {}. {}'.format(data.oid, data.status, str(excep))
             cls.log_gql_error(msg)
-            # TODO: FailedParsePlan.save(msg)
+            comment = dm.Comment(message=msg, author=cls.get_current_user())
+            err = dm.PlanParseFailedMessage(plans=[''], comment=comment)
+            err.save()
             return SyncFromControlResult(oid=data.oid, code=500, date=datetime.now(), message=msg)
         try:
             base.save()
