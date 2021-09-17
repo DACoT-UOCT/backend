@@ -39,7 +39,7 @@ def update_project_job(oid):
     r = range(SYNC_INTERVAL_UTC_TIME_STOP, SYNC_INTERVAL_UTC_TIME_START + 1)
     if current_hour not in r:
         print('Skipping update job for {}. Not in sync range hours. ({} | {})'.format(oid, current_hour, r))
-        return
+        # return
     proj = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest', oid=oid).first()
     assert proj != None
     if proj.metadata.last_sync_date > (datetime.datetime.utcnow() - datetime.timedelta(days=DAYS_SINCE_LAST_SYNC_LIMIT)):
