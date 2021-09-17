@@ -1,6 +1,6 @@
 import dacot_models as dm
 from graphene_mongo import MongoengineObjectType as MOT, MongoengineConnectionField as MCF
-from graphene import *
+import graphene as gp
 from graphene.relay import Node
 
 RANGE_SCALAR_MAX_VALUE = 50
@@ -67,16 +67,16 @@ class PlanParseFailedMessage(MOT):
         model = dm.PlanParseFailedMessage
         interfaces = (Node,)
 
-class SyncFromControlResult(ObjectType):
-    oid = NonNull(String)
-    code = NonNull(Int)
-    date = NonNull(DateTime)
-    message = NonNull(String)
+class SyncFromControlResult(gp.ObjectType):
+    oid = gp.NonNull(gp.String)
+    code = gp.NonNull(gp.Int)
+    date = gp.NonNull(gp.DateTime)
+    message = gp.NonNull(gp.String)
 
-class PartialPlanParseFailedMessage(ObjectType):
-    id = NonNull(String)
-    date = NonNull(DateTime)
-    comment = NonNull(Comment)
+class PartialPlanParseFailedMessage(gp.ObjectType):
+    id = gp.NonNull(gp.String)
+    date = gp.NonNull(gp.DateTime)
+    comment = gp.NonNull(Comment)
 
 class ExternalCompany(MOT):
     class Meta:
@@ -111,203 +111,203 @@ class OTUProgramItem(MOT):
     class Meta:
         model = dm.OTUProgramItem
 
-class PartialVersionInfo(ObjectType):
-    vid = NonNull(String)
-    date = NonNull(DateTime)
-    comment = Field(Comment)
+class PartialVersionInfo(gp.ObjectType):
+    vid = gp.NonNull(gp.String)
+    date = gp.NonNull(gp.DateTime)
+    comment = gp.Field(Comment)
 
-class JunctionLocationItem(ObjectType):
-    jid = NonNull(String)
-    lat = NonNull(Float)
-    lon = NonNull(Float)
+class JunctionLocationItem(gp.ObjectType):
+    jid = gp.NonNull(gp.String)
+    lat = gp.NonNull(gp.Float)
+    lon = gp.NonNull(gp.Float)
 
-class RangeScalar(Int):
+class RangeScalar(gp.Int):
     def __init__(self, required=False):
         super().__init__(required)
 
     @staticmethod
     def coerce_int(value):
-        num = Int.coerce_int(value)
+        num = gp.Int.coerce_int(value)
         if num > RANGE_SCALAR_MAX_VALUE:
             raise ValueError('Value {} is greater than max {}'.format(num, RANGE_SCALAR_MAX_VALUE))
         return num
 
     @staticmethod
     def parse_literal(ast):
-        num = Int.parse_literal(ast)
+        num = gp.Int.parse_literal(ast)
         if num > RANGE_SCALAR_MAX_VALUE:
             raise ValueError('Value {} is greater than max {}'.format(num, RANGE_SCALAR_MAX_VALUE))
         return num
 
-class ControllerModelInput(InputObjectType):
-    company = NonNull(String)
-    model = NonNull(String)
-    firmware_version = NonNull(String)
-    checksum = NonNull(String)
+class ControllerModelInput(gp.InputObjectType):
+    company = gp.NonNull(gp.String)
+    model = gp.NonNull(gp.String)
+    firmware_version = gp.NonNull(gp.String)
+    checksum = gp.NonNull(gp.String)
 
-class ControllerLocationInput(InputObjectType):
-    address_reference = String()
-    gps = Boolean()
-    model = NonNull(ControllerModelInput)
+class ControllerLocationInput(gp.InputObjectType):
+    address_reference = gp.String()
+    gps = gp.Boolean()
+    model = gp.NonNull(ControllerModelInput)
 
-class ProjectHeadersInput(InputObjectType):
-    hal = NonNull(Int)
-    led = NonNull(Int)
-    type = NonNull(String)
+class ProjectHeadersInput(gp.InputObjectType):
+    hal = gp.NonNull(gp.Int)
+    led = gp.NonNull(gp.Int)
+    type = gp.NonNull(gp.String)
 
-class ProjectUPSInput(InputObjectType):
-    brand = NonNull(String)
-    model = NonNull(String)
-    serial = NonNull(String)
-    capacity = NonNull(String)
-    charge_duration = NonNull(String)
+class ProjectUPSInput(gp.InputObjectType):
+    brand = gp.NonNull(gp.String)
+    model = gp.NonNull(gp.String)
+    serial = gp.NonNull(gp.String)
+    capacity = gp.NonNull(gp.String)
+    charge_duration = gp.NonNull(gp.String)
 
-class ProjectPolesInput(InputObjectType):
-    hooks = NonNull(Int)
-    vehicular = NonNull(Int)
-    pedestrian = NonNull(Int)
+class ProjectPolesInput(gp.InputObjectType):
+    hooks = gp.NonNull(gp.Int)
+    vehicular = gp.NonNull(gp.Int)
+    pedestrian = gp.NonNull(gp.Int)
 
-class ProjectMetaInput(InputObjectType):
-    installation_date = Date()
-    installation_company = String()
-    commune = NonNull(Int)
-    img = String()
-    pdf_data = String()
-    pedestrian_demand = Boolean()
-    pedestrian_facility = Boolean()
-    local_detector = Boolean()
-    scoot_detector = Boolean()
+class ProjectMetaInput(gp.InputObjectType):
+    installation_date = gp.Date()
+    installation_company = gp.String()
+    commune = gp.NonNull(gp.Int)
+    img = gp.String()
+    pdf_data = gp.String()
+    pedestrian_demand = gp.Boolean()
+    pedestrian_facility = gp.Boolean()
+    local_detector = gp.Boolean()
+    scoot_detector = gp.Boolean()
 
-class OTUMetadataInput(InputObjectType):
-    serial = String()
-    ip_address = String()
-    netmask = String()
-    control = Int()
-    answer = Int()
-    link_type = String()
-    link_owner = String()
+class OTUMetadataInput(gp.InputObjectType):
+    serial = gp.String()
+    ip_address = gp.String()
+    netmask = gp.String()
+    control = gp.Int()
+    answer = gp.Int()
+    link_type = gp.String()
+    link_owner = gp.String()
 
-class OTUProgramInput(InputObjectType):
-    day = NonNull(String)
-    time = NonNull(String)
-    plan = NonNull(String)
+class OTUProgramInput(gp.InputObjectType):
+    day = gp.NonNull(gp.String)
+    time = gp.NonNull(gp.String)
+    plan = gp.NonNull(gp.String)
 
-class JunctionPhasesSequenceInput(InputObjectType):
-    phid = NonNull(String)
-    phid_system = NonNull(String)
-    type = NonNull(String)
+class JunctionPhasesSequenceInput(gp.InputObjectType):
+    phid = gp.NonNull(gp.String)
+    phid_system = gp.NonNull(gp.String)
+    type = gp.NonNull(gp.String)
 
-class JunctionMetadataInput(InputObjectType):
-    coordinates = NonNull(List(NonNull(Float)))
-    address_reference = NonNull(String)
-    use_default_vi4 = Boolean()
+class JunctionMetadataInput(gp.InputObjectType):
+    coordinates = gp.NonNull(gp.List(gp.NonNull(gp.Float)))
+    address_reference = gp.NonNull(gp.String)
+    use_default_vi4 = gp.Boolean()
 
-class JunctionPlanPhaseValueInput(InputObjectType):
-    phid = NonNull(Int)
-    value = NonNull(Int)
+class JunctionPlanPhaseValueInput(gp.InputObjectType):
+    phid = gp.NonNull(gp.Int)
+    value = gp.NonNull(gp.Int)
 
-class JunctionIntergreenValueInput(InputObjectType):
-    phfrom = NonNull(String)
-    phto = NonNull(String)
-    value = NonNull(String)
+class JunctionIntergreenValueInput(gp.InputObjectType):
+    phfrom = gp.NonNull(gp.String)
+    phto = gp.NonNull(gp.String)
+    value = gp.NonNull(gp.String)
 
-class JunctionPlanInput(InputObjectType):
-    plid = NonNull(Int)
-    cycle = NonNull(Int)
-    system_start = NonNull(List(NonNull(JunctionPlanPhaseValueInput)))
-    green_start = List(NonNull(JunctionPlanPhaseValueInput))
-    phase_start = List(NonNull(JunctionPlanPhaseValueInput))
-    vehicle_green = List(NonNull(JunctionPlanPhaseValueInput))
-    pedestrian_green = List(NonNull(JunctionPlanPhaseValueInput))
-    pedestrian_intergreen = List(NonNull(JunctionIntergreenValueInput))
-    vehicle_intergreen = List(NonNull(JunctionIntergreenValueInput))
+class JunctionPlanInput(gp.InputObjectType):
+    plid = gp.NonNull(gp.Int)
+    cycle = gp.NonNull(gp.Int)
+    system_start = gp.NonNull(gp.List(gp.NonNull(JunctionPlanPhaseValueInput)))
+    green_start = gp.List(gp.NonNull(JunctionPlanPhaseValueInput))
+    phase_start = gp.List(gp.NonNull(JunctionPlanPhaseValueInput))
+    vehicle_green = gp.List(gp.NonNull(JunctionPlanPhaseValueInput))
+    pedestrian_green = gp.List(gp.NonNull(JunctionPlanPhaseValueInput))
+    pedestrian_intergreen = gp.List(gp.NonNull(JunctionIntergreenValueInput))
+    vehicle_intergreen = gp.List(gp.NonNull(JunctionIntergreenValueInput))
 
-class ProjectJunctionInput(InputObjectType):
-    jid = NonNull(String)
-    metadata = NonNull(JunctionMetadataInput)
-    sequence = List(JunctionPhasesSequenceInput)
-    plans = List(JunctionPlanInput)
-    intergreens = List(JunctionIntergreenValueInput)
-    phases = List(String)    
+class ProjectJunctionInput(gp.InputObjectType):
+    jid = gp.NonNull(gp.String)
+    metadata = gp.NonNull(JunctionMetadataInput)
+    sequence = gp.List(JunctionPhasesSequenceInput)
+    plans = gp.List(JunctionPlanInput)
+    intergreens = gp.List(JunctionIntergreenValueInput)
+    phases = gp.List(gp.String)    
 
-class ProjectOTUInput(InputObjectType):
+class ProjectOTUInput(gp.InputObjectType):
     metadata = OTUMetadataInput()
-    junctions = NonNull(List(NonNull(ProjectJunctionInput)))
-    programs = List(OTUProgramInput)
+    junctions = gp.NonNull(gp.List(gp.NonNull(ProjectJunctionInput)))
+    programs = gp.List(OTUProgramInput)
 
-class CreateProjectInput(InputObjectType):
-    oid = NonNull(String)
-    metadata = NonNull(ProjectMetaInput)
-    status = NonNull(String)
-    otu = NonNull(ProjectOTUInput)
-    controller = NonNull(ControllerLocationInput)
-    headers = List(ProjectHeadersInput)
+class CreateProjectInput(gp.InputObjectType):
+    oid = gp.NonNull(gp.String)
+    metadata = gp.NonNull(ProjectMetaInput)
+    status = gp.NonNull(gp.String)
+    otu = gp.NonNull(ProjectOTUInput)
+    controller = gp.NonNull(ControllerLocationInput)
+    headers = gp.List(ProjectHeadersInput)
     ups = ProjectUPSInput()
     poles = ProjectPolesInput()
-    observation = NonNull(String)
+    observation = gp.NonNull(gp.String)
 
-class SetVehicleIntergreenInput(InputObjectType):
-    jid = NonNull(String)
-    status = NonNull(String)
-    phases = List(NonNull(JunctionIntergreenValueInput))
+class SetVehicleIntergreenInput(gp.InputObjectType):
+    jid = gp.NonNull(gp.String)
+    status = gp.NonNull(gp.String)
+    phases = gp.List(gp.NonNull(JunctionIntergreenValueInput))
 
-class GetProjectInput(InputObjectType):
-    oid = NonNull(String)
-    status = NonNull(String)
+class GetProjectInput(gp.InputObjectType):
+    oid = gp.NonNull(gp.String)
+    status = gp.NonNull(gp.String)
 
-class AcceptRejectProjectInput(InputObjectType):
-    oid = NonNull(String)
-    status = NonNull(String)
-    message = String()
-    img = String()
+class AcceptRejectProjectInput(gp.InputObjectType):
+    oid = gp.NonNull(gp.String)
+    status = gp.NonNull(gp.String)
+    message = gp.String()
+    img = gp.String()
 
-class CreateCommuneInput(InputObjectType):
-    code = NonNull(Int)
-    name = NonNull(String)
-    maintainer = String()
-    user_in_charge = String()
+class CreateCommuneInput(gp.InputObjectType):
+    code = gp.NonNull(gp.Int)
+    name = gp.NonNull(gp.String)
+    maintainer = gp.String()
+    user_in_charge = gp.String()
 
-class UpdateControllerModelInput(InputObjectType):
-    cid = NonNull(String)
-    firmware_version = String()
-    checksum = String()
+class UpdateControllerModelInput(gp.InputObjectType):
+    cid = gp.NonNull(gp.String)
+    firmware_version = gp.String()
+    checksum = gp.String()
 
-class CreateControllerModelInput(InputObjectType):
-    company = NonNull(String)
-    model = NonNull(String)
-    firmware_version = String()
-    checksum = String()
+class CreateControllerModelInput(gp.InputObjectType):
+    company = gp.NonNull(gp.String)
+    model = gp.NonNull(gp.String)
+    firmware_version = gp.String()
+    checksum = gp.String()
 
-class CreatePlanParseFailedMessageInput(InputObjectType):
-    plans = NonNull(List(NonNull(String)))
-    message = NonNull(String)
+class CreatePlanParseFailedMessageInput(gp.InputObjectType):
+    plans = gp.NonNull(gp.List(gp.NonNull(gp.String)))
+    message = gp.NonNull(gp.String)
 
-class DeletePlanParseFailedMessageInput(InputObjectType):
-    mid = NonNull(String)
+class DeletePlanParseFailedMessageInput(gp.InputObjectType):
+    mid = gp.NonNull(gp.String)
 
-class DeleteCompanyInput(InputObjectType):
-    name = NonNull(String)
+class DeleteCompanyInput(gp.InputObjectType):
+    name = gp.NonNull(gp.String)
 
-class CreateCompanyInput(InputObjectType):
-    name = NonNull(String)
+class CreateCompanyInput(gp.InputObjectType):
+    name = gp.NonNull(gp.String)
 
-class CreateUserInput(InputObjectType):
-    is_admin = NonNull(Boolean)
-    full_name = NonNull(String)
-    email = NonNull(String)
-    role = NonNull(String)
-    area = NonNull(String)
-    company = String()
+class CreateUserInput(gp.InputObjectType):
+    is_admin = gp.NonNull(gp.Boolean)
+    full_name = gp.NonNull(gp.String)
+    email = gp.NonNull(gp.String)
+    role = gp.NonNull(gp.String)
+    area = gp.NonNull(gp.String)
+    company = gp.String()
 
-class DeleteUserInput(InputObjectType):
-    email = NonNull(String)
+class DeleteUserInput(gp.InputObjectType):
+    email = gp.NonNull(gp.String)
 
-class UpdateUserInput(InputObjectType):
-    email = NonNull(String)
-    is_admin = Boolean()
-    full_name = String()
+class UpdateUserInput(gp.InputObjectType):
+    email = gp.NonNull(gp.String)
+    is_admin = gp.Boolean()
+    full_name = gp.String()
 
-class UpdateCommuneInput(InputObjectType):
-    code = NonNull(Int)
-    maintainer = String()
-    user_in_charge = String()
+class UpdateCommuneInput(gp.InputObjectType):
+    code = gp.NonNull(gp.Int)
+    maintainer = gp.String()
+    user_in_charge = gp.String()
