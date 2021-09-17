@@ -83,7 +83,7 @@ class DACoTJobsScheduler:
         }
         self.__scheduler = AsyncIOScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=timezone('America/Santiago'))
         self.__scheduler.add_listener(listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
-        self.__scheduler.add_job(generate_updates_job, trigger='interval', hours=1, id='junction_updates_generator', replace_existing=True)
+        self.__scheduler.add_job(generate_updates_job, trigger=CronTrigger.from_crontab('0 * * * *'), id='junction_updates_generator', replace_existing=True)
         self.__scheduler.add_job(clock, trigger='interval', minutes=5, id='clock', replace_existing=True)
         self.info()
 
