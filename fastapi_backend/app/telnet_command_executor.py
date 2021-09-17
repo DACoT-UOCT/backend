@@ -6,7 +6,7 @@ import telnetlib
 from telnetlib import DO, DONT, IAC, WILL, WONT, NAWS, SB, SE
 
 class TelnetCommandExecutor:
-    def __init__(self, host, port=23, connection_timeout=40, logger=None):
+    def __init__(self, host, port=23, connection_timeout=10, logger=None):
         self.__logger = logger
         self.__commands = queue.Queue()
         self.__target_host = host

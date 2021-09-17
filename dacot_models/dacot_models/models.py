@@ -144,6 +144,7 @@ class ProjectMeta(EmbeddedDocument):
         choices=["NEW", "UPDATE", "REJECTED", "APPROVED", "PRODUCTION"], required=True
     )
     status_date = DateTimeField(default=datetime.utcnow, required=True)
+    last_sync_date = DateTimeField(default=datetime.fromtimestamp(0), required=True)
     status_user = ReferenceField(User, required=True)
     installation_date = DateTimeField()
     installation_company = ReferenceField(ExternalCompany)
