@@ -21,19 +21,22 @@ DAYS_SINCE_LAST_SYNC_LIMIT = 7
 
 def generate_updates_job():
     print('Starting generate_updates_job')
+    info_queue = set()
+    info_times = list()
     dm.PlanParseFailedMessage.drop_collection()
     prods = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest')
     for proj in prods:
         info_queue.add(proj.oid)
     to_update = list(info_queue)
     random.shuffle(to_update)
+    print(to_update)
     for item in to_update:
         scheduler.update(proj.oid)
     print('We have created {} jobs for project updates'.format(len(to_update)))
 
 def update_project_job(oid):
     current_hour = int(datetime.datetime.utcnow().hour)
-    r = range(SYNC_INTERVAL_UTC_TIME_START, SYNC_INTERVAL_UTC_TIME_STOP + 1)
+    r = range(SYNC_INTERVAL_UTC_TIME_STOP, SYNC_INTERVAL_UTC_TIME_START + 1)
     if current_hour not in r:
         print('Skipping update job for {}. Not in sync range hours. ({} | {})'.format(oid, current_hour, r))
         return
