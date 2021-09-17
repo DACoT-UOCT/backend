@@ -13,7 +13,6 @@ def test_range_scalar_coerce_int_limit():
 		m.coerce_int(models.RANGE_SCALAR_MAX_VALUE + 1)
 	except ValueError:
 		return
-	assert False
 
 def test_range_scalar_parse_literal():
 	m = models.RangeScalar()
@@ -26,4 +25,3 @@ def test_range_scalar_parse_literal_limit():
 		m.parse_literal(IntValue(value=str(models.RANGE_SCALAR_MAX_VALUE + 1)))
 	except ValueError:
 		return
-	assert False

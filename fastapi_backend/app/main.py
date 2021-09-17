@@ -38,12 +38,12 @@ app.add_middleware(SessionMiddleware, secret_key=get_settings().authjwt_secret_k
 graphql_app = CustomGraphQLApp(schema=dacot_schema)
 
 class User(BaseModel):
-    email: str = None
+    email: str = ''
     is_admin: bool = False
     disabled: bool = True
-    rol: str = None
-    area: str = None
-    full_name: str = None
+    rol: str = ''
+    area: str = ''
+    full_name: str = ''
 
 def get_user_from_token(token):
     return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())
