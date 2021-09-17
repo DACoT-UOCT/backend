@@ -21,6 +21,8 @@ jobs:
           poetry install
           poetry env info
           cd /home/runner/.cache/pypoetry/virtualenvs/*/lib/python3.9/site-packages/graphene && patch -p0 --verbose --ignore-whitespace --fuzz 3 < /home/runner/work/backend/backend/graphene_arguments.patch
+          poetry run pip3 uninstall -y dacot_models
+          poetry run pip3 install -e dacot_models/
       - name: Run coverage tool
         run: |
           poetry run coverage run -m pytest -v tests/
