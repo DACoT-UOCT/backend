@@ -21,25 +21,26 @@ DAYS_SINCE_LAST_SYNC_LIMIT = 7
 
 def generate_updates_job():
     print('Starting generate_updates_job')
-    info_queue = set()
-    info_times = list()
+    new_info_queue = set()
     dm.PlanParseFailedMessage.drop_collection()
     prods = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest')
     for proj in prods:
-        info_queue.add(proj.oid)
-    to_update = list(info_queue)
+        new_info_queue.add(proj.oid)
+    to_update = list(new_info_queue)
     random.shuffle(to_update)
-    print(to_update)
     for item in to_update:
-        scheduler.update(proj.oid)
+        print('Added update job for {} to scheduler'.format(item))
+        scheduler.update(item)
     print('We have created {} jobs for project updates'.format(len(to_update)))
+    info_queue = new_info_queue
 
 def update_project_job(oid):
+    print('Starting update for {}'.format(oid))
     current_hour = int(datetime.datetime.utcnow().hour)
     r = range(SYNC_INTERVAL_UTC_TIME_STOP, SYNC_INTERVAL_UTC_TIME_START + 1)
     if current_hour not in r:
         print('Skipping update job for {}. Not in sync range hours. ({} | {})'.format(oid, current_hour, r))
-        # return
+        #$ return Disabled for initial deploy in prod
     proj = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest', oid=oid).first()
     assert proj != None
     if proj.metadata.last_sync_date > (datetime.datetime.utcnow() - datetime.timedelta(days=DAYS_SINCE_LAST_SYNC_LIMIT)):
@@ -53,9 +54,11 @@ def update_project_job(oid):
     res = mut.mutate(None, None, data)
     end = time.time()
     info_times.append(int(end - start))
-    info_queue.remove(oid)
+    if oid in info_queue:
+        info_queue.remove(oid)
     if res.code != 200:
         raise RuntimeError(res.message)
+    print('Update for {} done'.format(oid))
 
 def listener(event):
     if event.exception:
@@ -91,7 +94,7 @@ class DACoTJobsScheduler:
         self.__scheduler.start()
 
     def update(self, oid):
-        self.__scheduler.add_job(update_project_job, trigger='date', kwargs={'oid': oid}, id='project_update_{}'.format(oid), replace_existing=True, misfire_grace_time=None)
+        self.__scheduler.add_job(update_project_job, args=[oid], trigger='date', id='project_update_{}'.format(oid), replace_existing=True, misfire_grace_time=None)
 
     def info(self):
         self.__scheduler.print_jobs()

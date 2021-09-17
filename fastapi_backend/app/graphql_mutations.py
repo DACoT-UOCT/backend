@@ -13,8 +13,6 @@ import sys
 import traceback
 
 class CustomMutation(Mutation):
-    # FIXME: Add current user to log
-    # FIXME: Make log in background_task
     class Meta:
         abstract = True
 
@@ -40,7 +38,7 @@ class CustomMutation(Mutation):
 
     @classmethod
     def get_current_user(cls):
-        # TODO: For now, we return the same user for all requests
+        # System user
         return dm.User.objects(email="seed@dacot.uoct.cl").first()
 
     @classmethod
