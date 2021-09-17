@@ -1,4 +1,5 @@
 import pytest
+from graphql.language.ast import IntValue
 import fastapi_backend.app.graphql_models as models
 
 def test_range_scalar_coerce_int():
@@ -16,13 +17,13 @@ def test_range_scalar_coerce_int_limit():
 
 def test_range_scalar_parse_literal():
 	m = models.RangeScalar()
-	r = m.coerce_int('10')
+	r = m.parse_literal(IntValue(value='10'))
 	assert r == 10
 
 def test_range_scalar_parse_literal_limit():
 	m = models.RangeScalar()
 	try:
-		m.coerce_int(str(models.RANGE_SCALAR_MAX_VALUE + 1))
+		m.parse_literal(IntValue(value=str(models.RANGE_SCALAR_MAX_VALUE + 1)))
 	except ValueError:
 		return
 	assert False
