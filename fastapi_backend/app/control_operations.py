@@ -35,12 +35,22 @@ class SyncProject:
         }
 
     def run(self):
-        out_block, raw_data = self.__read_control()
-        assert list(raw_data.keys()) == list(out_block.keys())
-        progs = self.__build_programs(out_block)
-        plans = self.__build_plans(out_block)
-        inters = self.__build_inters(raw_data)
-        seq = self.__build_sequence(raw_data)
+        # Step 1
+        out1 = copy.deepcopy(self.__session1())
+        assert list(out1[0].keys()) == list(out1[1].keys())
+        progs = self.__build_programs(out1[0])
+        plans = self.__build_plans(out1[0])
+
+        # Step 2
+        out2 = copy.deepcopy(self.__session2())
+        assert list(out2[0].keys()) == list(out2[1].keys())
+        seq = self.__build_sequence(out2[1])
+
+        # Step 3
+        out3 = copy.deepcopy(self.__session3())
+        assert list(out3[0].keys()) == list(out3[1].keys())
+        inters = self.__build_inters(out3[1])
+        
         self.__update_project(plans, progs, inters, seq)
         return self.__proj
 
@@ -73,6 +83,9 @@ class SyncProject:
         r = {}
         sequence_match = list(self.__re_extract_sequence.finditer(screen, re.MULTILINE))
         if len(sequence_match) != 1:
+            print('=' * 35)
+            print(screen)
+            print('=' * 35)
             raise ValueError('__extract_sequence: Failed to find Sequence for {}'.format(junc.jid))
         seqstr = sequence_match[0].group('sequence').strip()
         seq = []
@@ -101,6 +114,9 @@ class SyncProject:
     def __extract_intergreens(self, junc, screen):
         rows_match = list(self.__re_intergreens_table.finditer(screen, re.MULTILINE))
         if len(rows_match) == 0:
+            print('=' * 35)
+            print(screen)
+            print('=' * 35)
             raise ValueError('__extract_intergreens: Failed to extract intergreens for {}'.format(junc.jid))
         table = []
         names = []
@@ -353,17 +369,6 @@ class SyncProject:
         out = self.__exec.get_results()
         self.__run_login_check(out)
         return (self.__output_to_text_block(out), out)
-
-    def __read_control(self):
-        out1 = copy.deepcopy(self.__session1())
-        assert list(out1[0].keys()) == list(out1[1].keys())
-        out2 = copy.deepcopy(self.__session2())
-        assert list(out2[0].keys()) == list(out2[1].keys())
-        out3 = copy.deepcopy(self.__session3())
-        assert list(out3[0].keys()) == list(out3[1].keys())
-        clean = {**out1[0], **out2[0], **out3[0]}
-        raw = {**out1[1], **out2[1], **out3[1]}
-        return clean, raw
 
     def __list_plans(self, jid):
         self.__exec.command('get-plans-{}'.format(jid), 'LIPT {} TIMINGS'.format(jid))
