@@ -34,23 +34,27 @@ class SyncProject:
             '3': 'DO'
         }
 
-    def run(self):
-        # Step 1
+    def __step1(self):
         out1 = copy.deepcopy(self.__session1())
         assert list(out1[0].keys()) == list(out1[1].keys())
         progs = self.__build_programs(out1[0])
         plans = self.__build_plans(out1[0])
+        return plans, progs
 
-        # Step 2
+    def __step2(self):
         out2 = copy.deepcopy(self.__session2())
         assert list(out2[0].keys()) == list(out2[1].keys())
-        seq = self.__build_sequence(out2[1])
+        return self.__build_sequence(out2[1])
 
-        # Step 3
+    def __step3(self):
         out3 = copy.deepcopy(self.__session3())
         assert list(out3[0].keys()) == list(out3[1].keys())
-        inters = self.__build_inters(out3[1])
-        
+        return self.__build_inters(out3[1])
+
+    def run(self):
+        inters = self.__step3()
+        seq = self.__step2()
+        plans, progs = self.__step1()
         self.__update_project(plans, progs, inters, seq)
         return self.__proj
 
