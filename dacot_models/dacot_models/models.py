@@ -243,6 +243,20 @@ class APIKeyUsers(Document):
     secret = StringField(required=True, unique=True)
 
 class ActiveUserSession(Document):
+    '''
+    Documento en la base de datos MongoDB. Representa la sesión de un usuario registrado
+
+    Attributes
+    ---
+
+    email : str
+        el correo electronico utilizado por el usuario en la plataforma
+    valid : bool
+        el estado de la sesión del usuario
+
+    Methods
+    ---
+    '''
     meta = {"collection": "UserSessions"}
     email = StringField(required=True, unique=True)
     valid = BooleanField(required=True, default=False)
