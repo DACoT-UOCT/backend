@@ -25,6 +25,9 @@ def generate_updates_job():
     dm.PlanParseFailedMessage.drop_collection()
     prods = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest')
     for proj in prods:
+        if proj.metadata.last_sync_date > (datetime.datetime.utcnow() - datetime.timedelta(days=DAYS_SINCE_LAST_SYNC_LIMIT)):
+            print('Skipping update job for {}. Project.metadata.last_sync_date < DAYS_SINCE_LAST_SYNC_LIMIT'.format(proj.oid))
+            continue
         new_info_queue.add(proj.oid)
     to_update = list(new_info_queue)
     random.shuffle(to_update)
@@ -40,7 +43,6 @@ def update_project_job(oid):
     r = range(SYNC_INTERVAL_UTC_TIME_STOP, SYNC_INTERVAL_UTC_TIME_START + 1)
     if current_hour not in r:
         print('Skipping update job for {}. Not in sync range hours. ({} | {})'.format(oid, current_hour, r))
-        #$ return Disabled for initial deploy in prod
     proj = dm.Project.objects(metadata__status='PRODUCTION', metadata__version='latest', oid=oid).first()
     assert proj != None
     if proj.metadata.last_sync_date > (datetime.datetime.utcnow() - datetime.timedelta(days=DAYS_SINCE_LAST_SYNC_LIMIT)):
@@ -65,8 +67,9 @@ def listener(event):
         print('[=>][!] Job [{}] has failed with the error: {}'.format(event.job_id, event.exception))
     else:
         print('[=>][+] Job [{}] has succeded'.format(event.job_id))
+    print('We have {} jobs in queue'.format(len(info_queue)))
     if len(info_times) > 0 and len(info_queue) > 0:
-        print('We have {} jobs in queue. The average time is {}s'.format(len(info_queue), sum(info_times) / len(info_times)))
+        print('The average time is {}s'.format(sum(info_times) / len(info_times)))
 
 def clock():
     print('The time is: {}'.format(datetime.datetime.now()))
