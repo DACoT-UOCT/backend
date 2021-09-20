@@ -189,6 +189,7 @@ class SyncProject:
                 junc.veh_intergreens = veh_inters
         compute = ComputeJunctionPlansTables(self.__proj)
         self.__proj.metadata.last_sync_date = datetime.datetime.utcnow()
+        self.__proj.metadata.status_date = self.__proj.metadata.last_sync_date
         self.__proj = compute.run()
 
     def __generate_plans_objs(self, plans):
