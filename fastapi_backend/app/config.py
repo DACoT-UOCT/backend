@@ -26,14 +26,14 @@ if settings.mail_user and settings.mail_pass:
         MAIL_USERNAME=settings.mail_user,
         MAIL_PASSWORD=settings.mail_pass,
         MAIL_PORT=587,
-        MAIL_FROM='system-no-reply@dacot.uoct.cl',
+        MAIL_FROM=settings.mail_user,
         MAIL_SERVER='smtp.gmail.com',
         MAIL_TLS=True,
         MAIL_SSL=False,
         USE_CREDENTIALS=True,
         TEMPLATE_FOLDER='/app/email_templates/'
     )
-    settings.mail_enabled = False
+    settings.mail_enabled = True
 
 @lru_cache()
 def get_settings():
