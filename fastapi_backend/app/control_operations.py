@@ -85,11 +85,12 @@ class SyncProject:
 
     def __extract_sequence(self, junc, screen):
         r = {}
+        print('DEBUG __extract_sequence')
+        print('=' * 35)
+        print(screen)
+        print('=' * 35)
         sequence_match = list(self.__re_extract_sequence.finditer(screen, re.MULTILINE))
         if len(sequence_match) != 1:
-            print('=' * 35)
-            print(screen)
-            print('=' * 35)
             raise ValueError('__extract_sequence: Failed to find Sequence for {}'.format(junc.jid))
         seqstr = sequence_match[0].group('sequence').strip()
         seq = []
@@ -116,11 +117,12 @@ class SyncProject:
         return r
 
     def __extract_intergreens(self, junc, screen):
+        print('DEBUG __extract_intergreens')
+        print('=' * 35)
+        print(screen)
+        print('=' * 35)
         rows_match = list(self.__re_intergreens_table.finditer(screen, re.MULTILINE))
         if len(rows_match) == 0:
-            print('=' * 35)
-            print(screen)
-            print('=' * 35)
             raise ValueError('__extract_intergreens: Failed to extract intergreens for {}'.format(junc.jid))
         table = []
         names = []
