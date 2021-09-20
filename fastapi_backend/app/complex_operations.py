@@ -29,6 +29,8 @@ class EmailSender:
             res = res + [ comm_maintainer ]
         if len(settings.mail_extra_targets) >= 1:
             res = res + settings.mail_extra_targets
+        if 'seed@dacot.uoct.cl' in res:
+            res.remove('seed@dacot.uoct.cl')
         return res
 
     def __do_send_email(self, data):
