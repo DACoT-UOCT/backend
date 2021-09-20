@@ -189,6 +189,7 @@ class ComputeJunctionPlansTables:
                 else:
                     phid_next = sorted_phases[0][0]
                 if phid_next == phid:
+                    print(phid, phid_next, sorted_phases)
                     raise ValueError('BUG: This should not be posible, we only have one phase')
                 tvv = phases[phid_next][2] - row[4]
                 gamma = int(tvv < 0)
