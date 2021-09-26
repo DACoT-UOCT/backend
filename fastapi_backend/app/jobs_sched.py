@@ -73,9 +73,10 @@ def listener(event):
         print('[=>][+] Job [{}] has succeded'.format(event.job_id))
     not_done = list(filter(lambda x: not x[1]['done'], QUEUE_DATA.items()))
     done = list(filter(lambda x: x[1]['done'], QUEUE_DATA.items()))
-    avg = int(sum(map(lambda x: x[1]['time'], done)) / len(done))
     print('We have {} projects to update'.format(len(not_done)))
-    print('The average time is {}s'.format(avg))
+    if len(done) > 0:
+        avg = int(sum(map(lambda x: x[1]['time'], done)) / len(done))
+        print('The average time is {}s'.format(avg))
 
 def clock():
     print('The time is: {}'.format(datetime.datetime.now()))
