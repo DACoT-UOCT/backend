@@ -98,4 +98,4 @@ class Query(ObjectType):
         return None
 
     def resolve_check_otu_exists(self, info, oid):
-        return dm.Project.objects(oid=oid, metadata__status='PRODUCTION', metadata__version='latest').first() != None
+        return dm.Project.objects(oid=oid, metadata__status__in=['NEW', 'PRODUCTION'], metadata__version='latest').first() != None
