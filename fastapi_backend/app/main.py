@@ -95,6 +95,7 @@ async def swap(request: Request):
         return Response('Invalid email data', status_code=422)
     create_new_session(user['email'])
     request.session['user'] = dict(user)
+    print("__DEBUG: request.session['user']={}".format(request.session['user']))
 
 @app.get('/logout')
 async def logout(request: Request):
