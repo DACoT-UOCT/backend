@@ -44,6 +44,7 @@ class User(BaseModel):
     rol: str = ''
     area: str = ''
     full_name: str = ''
+    picture: str = ''
 
 def get_user_from_token(token):
     return id_token.verify_oauth2_token(token, GoogleAuthReq.Request())
@@ -115,6 +116,7 @@ async def me(request: Request):
     if dbu.disabled:
         return Response(None, status_code=422)
     r = User(**dbu.to_mongo())
+    r.picture = u['picture']
     if not check_session(r.email):
         return Response(None, status_code=400)
     return r
