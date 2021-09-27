@@ -1,21 +1,81 @@
 <html>
-<body style="margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;">
-<div style="width: 100%; background: #efefef; border-radius: 10px; padding: 10px;">
-  <div style="margin: 0 auto; width: 90%; text-align: center;">
-    <h1 style="background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;">{{ body.title }}</h1>
-    <div style="margin: 30px auto; background: white; width: 40%; border-radius: 10px; padding: 50px; text-align: center;">
-      <h3 style="margin-bottom: 100px; font-size: 24px;">{{ body.name }}!</h3>
-      <p style="margin-bottom: 30px;">Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi, doloremque.</p>
-      <a style="display: block; margin: 0 auto; border: none; background-color: rgba(255, 214, 10, 1); color: white; width: 200px; line-height: 24px; padding: 10px; font-size: 24px; border-radius: 10px; cursor: pointer; text-decoration: none;"
-        href="https://fastapi.tiangolo.com/"
-        target="_blank" rel=noopener
-      >
-        NUEVO PROYECTO CREADO
-      </a>
-      <p style="margin-bottom: 30px;">Comentario:</p>
-      <p style="margin-bottom: 30px;">{{ body.message }}</p>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        background: #efefef;
+        border-radius: 10px;
+        padding: 10px;
+      "
+    >
+      <div style="margin: 0 auto; width: 90%; text-align: center">
+        <h1
+          style="
+            background-color: rgb(133, 43, 80);
+            padding: 8px 10px;
+            border-radius: 5px;
+            color: white;
+          "
+        >
+          {{ body.title }}
+        </h1>
+        <div
+          style="
+            margin: 20px auto;
+            background: white;
+            width: 80%;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: start;
+          "
+        >
+          <div
+            style="
+              display: block;
+              margin: 0 auto;
+              border: none;
+              background-color: rgb(255, 174, 0);
+              color: white;
+              width: 200px;
+              line-height: 24px;
+              padding: 10px;
+              font-size: 24px;
+              border-radius: 10px;
+              font-weight: bold;
+
+              text-decoration: none;
+              text-align: center;
+            "
+            rel="noopener"
+          >
+            Solicitud de registro recibida
+          </div>
+          <p style="margin-bottom: 30px; font-size: 1rem">
+            La solicitud de registro para la instalación {{ body.oid }} ha sido
+            REGISTRADA con éxito en la plataforma DACoT con el siguiente
+            comentario
+          </p>
+          <p style="margin-bottom: 70px; color: rgb(113, 112, 116)">
+            {{ body.message }}
+          </p>
+
+          <p>
+            Una vez la solicitud sea procesada por funcionarios de la UOCT, se
+            notificará la resolución por esta via. Cualquier duda u observación
+            adicional, favor de responder este mismo correo.
+          </p>
+        </div>
+        <p style="font-size: 0.8rem">
+          Mensaje autogenerado por la plataforma DACoT
+        </p>
+      </div>
     </div>
-  </div>
-</div>
-</body>
+  </body>
 </html>
