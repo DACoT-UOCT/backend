@@ -44,13 +44,14 @@ class EmailSender:
 
     def send_update_created(self, project):
         try:
-            self.__subj = '[DACoT.UOCT] Nueva Actualización {}'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Actualización de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'update_created.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': project.observation.message
+                'message': project.observation.message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
@@ -60,13 +61,14 @@ class EmailSender:
         if not message:
             message = 'Sin Observaciones'
         try:
-            self.__subj = '[DACoT.UOCT] Actualización {} ACEPTADA'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Actualización de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'update_accepted.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': message
+                'message': message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
@@ -76,13 +78,14 @@ class EmailSender:
         if not message:
             message = 'Sin Observaciones'
         try:
-            self.__subj = '[DACoT.UOCT] Actualización {} RECHAZADA'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Actualización de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'update_rejected.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': message
+                'message': message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
@@ -90,13 +93,14 @@ class EmailSender:
 
     def send_new_created(self, project):
         try:
-            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {}'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Registro de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'new_created.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': project.observation.message
+                'message': project.observation.message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
@@ -106,13 +110,14 @@ class EmailSender:
         if not message:
             message = 'Sin Observaciones'
         try:
-            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {} ACEPTADO'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Registro de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'new_accepted.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': message
+                'message': message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
@@ -122,13 +127,14 @@ class EmailSender:
         if not message:
             message = 'Sin Observaciones'
         try:
-            self.__subj = '[DACoT.UOCT] Nuevo Proyecto {} RECHAZADO'.format(project.oid)
+            self.__subj = '[DACoT.UOCT] Registro de instalación {}'.format(project.oid)
             self.__tgts = self.__build_email_targets(project)
             self.__tname = 'new_rejected.html'
             self.__do_send_email({
                 'title': self.__subj,
                 'name': project.metadata.status_user.full_name,
-                'message': message
+                'message': message,
+                'oid': project.oid
             })
             return True, None
         except Exception as excep:
