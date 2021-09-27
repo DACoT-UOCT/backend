@@ -29,6 +29,7 @@ def generate_updates_job():
             continue
         to_update.append(proj.oid)
     random.shuffle(to_update)
+    print('__DEBUG: to_update={}'.format(to_update))
     for item in to_update:
         print('Added update job for {} to scheduler'.format(item))
         scheduler.update(item)
