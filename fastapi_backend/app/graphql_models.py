@@ -120,6 +120,7 @@ class JunctionLocationItem(gp.ObjectType):
     jid = gp.NonNull(gp.String)
     lat = gp.NonNull(gp.Float)
     lon = gp.NonNull(gp.Float)
+    commune = gp.NonNull(gp.String)
 
 class RangeScalar(gp.Int):
     def __init__(self, required=False):

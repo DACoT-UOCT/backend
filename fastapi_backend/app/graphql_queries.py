@@ -69,7 +69,7 @@ class Query(ObjectType):
         for proj in projs:
             for junc in proj.otu.junctions:
                 loc = junc.metadata.location['coordinates']
-                res.append(JunctionLocationItem(jid=junc.jid, lat=loc[0], lon=loc[1]))
+                res.append(JunctionLocationItem(jid=junc.jid, lat=loc[0], lon=loc[1], commune=proj.metadata.commune.name))
         return res
 
     def resolve_project(self, info, oid, status):
