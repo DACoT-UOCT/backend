@@ -401,9 +401,9 @@ class UpdateUser(CustomMutation):
         user = dm.User.objects(email=data.email).first()
         if not user:
             return cls.log_gql_error('User {} not found'.format(data.email))
-        if data.is_admin:
+        if data.is_admin != None:
             user.is_admin = data.is_admin
-        if data.full_name:
+        if data.full_name != None:
             user.full_name = data.full_name
         try:
             user.save()
