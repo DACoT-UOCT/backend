@@ -123,4 +123,5 @@ async def me(request: Request):
 
 @app.on_event('startup')
 async def startup_event():
-    scheduler.start()
+    # scheduler.start()
+    pass

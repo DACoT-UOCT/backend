@@ -191,11 +191,15 @@ class ComputeJunctionPlansTables:
         for plid, phases in temp_res.items():
             final_result[plid] = {}
             sorted_phases = sorted(phases.items(), key=lambda x: x[0])
-            for phid, row in sorted_phases:
-                if phid + 1 in phases:
-                    phid_next = phid + 1
-                else:
+            for spidx, (phid, row) in enumerate(sorted_phases):
+                if spidx + 1 == len(sorted_phases):
                     phid_next = sorted_phases[0][0]
+                else:
+                    phid_next = sorted_phases[spidx + 1][0]
+                # if phid + 1 in phases:
+                #     phid_next = phid + 1
+                # else:
+                #     phid_next = sorted_phases[0][0]
                 if phid_next == phid:
                     print(phid, phid_next, sorted_phases)
                     raise ValueError('BUG: This should not be posible, we only have one phase')

@@ -56,7 +56,7 @@ class Query(ObjectType):
         return dm.ControllerModel.objects(disabled__ne=True).all()
 
     def resolve_junction(self, info, jid, status):
-        proj = ProjectModel.objects(metadata__status=status, otu__junctions__jid=jid).only('otu.junctions').first()
+        proj = dm.Project.objects(metadata__status=status, otu__junctions__jid=jid).only('otu.junctions').first()
         if proj:
             for junc in proj.otu.junctions:
                 if junc.jid == jid:
@@ -91,7 +91,7 @@ class Query(ObjectType):
 
     def resolve_login_api_key(self, info, key, secret):
         authorize = info.context["request"].state.authorize
-        user = APIKeyUsersModel.objects(key=key, secret=secret).first()
+        user = dm.APIKeyUsers.objects(key=key, secret=secret).first()
         if user:
             token = authorize.create_access_token(subject=key)
             return token
