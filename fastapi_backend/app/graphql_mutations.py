@@ -423,16 +423,22 @@ class UpdateCommune(CustomMutation):
         commune = dm.Commune.objects(code=data.code).first()
         if not commune:
             return cls.log_gql_error('Commune {} not found'.format(data.code))
-        if data.maintainer:
-            comp = dm.ExternalCompany.objects(name=data.maintainer).first()
-            if not comp:
-                return cls.log_gql_error('Company {} not found'.format(data.maintainer))
-            commune.maintainer = comp
-        if data.user_in_charge:
-            user = dm.User.objects(email=data.user_in_charge).first()
-            if not user:
-                return cls.log_gql_error('User {} not found'.format(data.user_in_charge))
-            commune.user_in_charge = user
+        if data.maintainer != None:
+            if data.maintainer == "":
+                commune.maintainer = None
+            else:
+                comp = dm.ExternalCompany.objects(name=data.maintainer).first()
+                if not comp:
+                    return cls.log_gql_error('Company {} not found'.format(data.maintainer))
+                commune.maintainer = comp
+        if data.user_in_charge != None:
+            if data.user_in_charge == "":
+                commune.user_in_charge = None
+            else:
+                user = dm.User.objects(email=data.user_in_charge).first()
+                if not user:
+                    return cls.log_gql_error('User {} not found'.format(data.user_in_charge))
+                commune.user_in_charge = user
         try:
             commune.save()
         except Exception as excep:
