@@ -263,7 +263,9 @@ class SyncProject:
             new_item = (k[0], k[1], k[2], v)
             print('Item: {} -> NewItem: {}'.format(item, new_item))
             final_progs.append(item)
-        return self.__sort_programs(final_progs)
+        sorted = self.__sort_programs(final_progs)
+        print('Result of __sort_programs: {}'.format(sorted))
+        return sorted
 
     def __sort_programs(self, progs):
         dmap = {
