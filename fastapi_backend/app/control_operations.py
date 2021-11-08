@@ -238,7 +238,7 @@ class SyncProject:
                 if new_hour[0]:
                     current_time = new_hour[1]
                 if prog_match:
-                    res[(self.__table_id_to_day[tid], current_time)] = prog_match.group('plan')
+                    res[(self.__table_id_to_day[tid], current_time, prog_match.group('plan'))] = prog_match.group('plan')
                 elif is_extra_day[0]:
                     line_without_day = is_extra_day[1]
                     line_day = is_extra_day[2]
@@ -246,20 +246,23 @@ class SyncProject:
                     extra_scoot_match = self.__check_is_scoot(line_without_day)
                     extra_demand_match = self.__check_is_demand(line_without_day)
                     if extra_plan_match:
-                        res[(line_day, current_time)] = extra_plan_match.group('plan')
+                        res[(line_day, current_time, extra_plan_match.group('plan'))] = extra_plan_match.group('plan')
                     elif extra_scoot_match[0]:
-                        res[(line_day, current_time)] = extra_scoot_match[1]
+                        res[(line_day, current_time, extra_scoot_match[1])] = extra_scoot_match[1]
                     elif extra_demand_match[0]:
-                        res[(line_day, current_time)] = extra_demand_match[1]
+                        res[(line_day, current_time, extra_demand_match[1])] = extra_demand_match[1]
                 elif is_scoot_change[0]:
-                    res[(self.__table_id_to_day[tid], current_time)] = is_scoot_change[1]
+                    res[(self.__table_id_to_day[tid], current_time, is_scoot_change[1])] = is_scoot_change[1]
                 elif is_demand_change[0]:
-                    res[(self.__table_id_to_day[tid], current_time)] = is_demand_change[1]
+                    res[(self.__table_id_to_day[tid], current_time, is_demand_change[1])] = is_demand_change[1]
                 else:
                     pass
         final_progs = []
         for k, v in res.items():
-            final_progs.append((k[0], k[1], v))
+            item = (k[0], k[1], v)
+            new_item = (k[0], k[1], k[2], v)
+            print('Item: {} -> NewItem: {}'.format(item, new_item))
+            final_progs.append(item)
         return self.__sort_programs(final_progs)
 
     def __sort_programs(self, progs):
