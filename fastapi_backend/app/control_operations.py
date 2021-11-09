@@ -265,7 +265,28 @@ class SyncProject:
             final_progs.append(item)
         sorted = self.__sort_programs(final_progs)
         print('Result of __sort_programs: {}'.format(sorted))
-        return sorted
+        final_result = self.__map_by_time_and_clear(sorted)
+        print('Final result of __map_by_time_and_clear: {}'.format(final_result))
+        return final_result
+
+    def __map_by_time_and_clear(self, sorted):
+        m = {}
+        r = []
+        for i in sorted:
+            k = (i[0], i[1])
+            if k not in m:
+                m[k] = []
+            m[k].append(i[2])
+        for k, v in m.items():
+            if len(v) > 1:
+                if 'XSCO' in v or 'SCOO' in v or 'XDEM' in v or 'DEMA' in v:
+                    for x in v:
+                        r.append((k[0], k[1], x))
+                else:
+                    r.append((k[0], k[1], v[-1]))    
+            else:
+                r.append((k[0], k[1], v[0]))
+        return r
 
     def __sort_programs(self, progs):
         dmap = {
