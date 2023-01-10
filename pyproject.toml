@@ -24,7 +24,7 @@ gql-query-builder = "^0.1.5"
 loguru = "^0.5.3"
 sendgrid = "^6.7.0"
 Authlib = "^0.15.4"
-itsdangerous = "^2.0.1"
+itsdangerous = "^2.1.2"
 pytest = "^6.2.4"
 coverage = "^5.5"
 dacot-models = {path = "dacot_models"}
